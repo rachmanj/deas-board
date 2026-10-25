@@ -59,6 +59,7 @@ class ClickImportSessionsCommand extends Command
             ->all();
         $existingSet = array_flip($existingTopicIds);
 
+        $verbose = $this->output->isVerbose();
         $plan = [];
         $newCount = 0;
         $existingCount = 0;
@@ -73,21 +74,19 @@ class ClickImportSessionsCommand extends Command
                 $status = 'baru';
             }
 
-            $plan[] = [
-                'topic_id' => $row['topic_id'],
-                'label' => $row['label'],
-                'status' => $status,
-            ];
+            $plan[] = $this->planTableRow($row, $status, $verbose);
         }
 
         if ($dryRun) {
-            $this->table(['topic_id', 'label', 'status'], $plan);
-            $this->line("Baris terbaca: ".count($rows));
+            $this->renderImportPlanTable($plan, $verbose);
+            $this->line('Baris terbaca: '.count($rows));
             $this->line("Sesi baru: {$newCount}");
             $this->line("Sesi sudah ada (dilewati): {$existingCount}");
 
             return self::SUCCESS;
         }
+
+        $this->renderImportPlanTable($plan, $verbose);
 
         $imported = 0;
         foreach ($rows as $row) {
@@ -184,5 +183,52 @@ class ClickImportSessionsCommand extends Command
         }
 
         return $from;
+    }
+
+    /**
+     * @param  array{topic_id: string, label: string, notes: string|null}  $row
+     * @return array<string, string>
+     */
+    private function planTableRow(array $row, string $status, bool $verbose): array
+    {
+        $fullNotes = $row['notes'] ?? '';
+        $plan = [
+            'topic_id' => $row['topic_id'],
+            'label' => $row['label'],
+            'catatan' => $this->truncateForTable($fullNotes, 40),
+            'status' => $status,
+        ];
+
+        if ($verbose) {
+            $plan['catatan_penuh'] = $fullNotes;
+        }
+
+        return $plan;
+    }
+
+    /**
+     * @param  list<array<string, string>>  $plan
+     */
+    private function renderImportPlanTable(array $plan, bool $verbose): void
+    {
+        $headers = ['topic_id', 'label', 'catatan', 'status'];
+        if ($verbose) {
+            $headers[] = 'catatan_penuh';
+        }
+
+        $this->table($headers, $plan);
+    }
+
+    private function truncateForTable(string $text, int $maxLength): string
+    {
+        if ($text === '') {
+            return '';
+        }
+
+        if (mb_strlen($text) <= $maxLength) {
+            return $text;
+        }
+
+        return mb_substr($text, 0, $maxLength).'…';
     }
 }

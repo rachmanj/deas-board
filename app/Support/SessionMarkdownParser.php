@@ -9,12 +9,17 @@ class SessionMarkdownParser
      */
     public function parse(string $markdown): array
     {
+        $markdown = $this->extractApplicationSessionsSection($markdown);
         $rows = [];
         $lines = preg_split('/\R/', $markdown) ?: [];
 
         foreach ($lines as $line) {
             $line = trim($line);
-            if ($line === '' || ! str_contains($line, '**')) {
+            if ($line === '' || ! str_starts_with($line, '|')) {
+                continue;
+            }
+
+            if (! str_contains($line, '**')) {
                 continue;
             }
 
@@ -53,6 +58,35 @@ class SessionMarkdownParser
         }
 
         return $rows;
+    }
+
+    private function extractApplicationSessionsSection(string $markdown): string
+    {
+        $lines = preg_split('/\R/', $markdown) ?: [];
+        $sectionStart = null;
+
+        foreach ($lines as $index => $line) {
+            $trimmed = trim($line);
+            if (str_starts_with($trimmed, '## 3. Sesi aplikasi')) {
+                $sectionStart = $index + 1;
+                break;
+            }
+        }
+
+        if ($sectionStart === null) {
+            return $markdown;
+        }
+
+        $sectionLines = [];
+        for ($i = $sectionStart, $count = count($lines); $i < $count; $i++) {
+            $trimmed = trim($lines[$i]);
+            if (preg_match('/^##\s/', $trimmed)) {
+                break;
+            }
+            $sectionLines[] = $lines[$i];
+        }
+
+        return implode("\n", $sectionLines);
     }
 
     /**
