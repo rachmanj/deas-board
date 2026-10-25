@@ -7,6 +7,7 @@ use App\Models\Session;
 use App\Models\Task;
 use App\Support\SessionProjectSlug;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 
 class ClickSeedProjectsCommand extends Command
 {
@@ -14,7 +15,8 @@ class ClickSeedProjectsCommand extends Command
 
     protected $signature = 'click:seed-projects
                             {--dry-run : Preview seeding without writing}
-                            {--apply : Apply projects and task project_id updates}';
+                            {--apply : Apply projects and task project_id updates}
+                            {--reslug : Normalize existing project slugs from their names}';
 
     protected $description = 'Create projects from session app labels and backfill task project_id';
 
@@ -22,11 +24,16 @@ class ClickSeedProjectsCommand extends Command
     {
         $dryRun = (bool) $this->option('dry-run');
         $apply = (bool) $this->option('apply');
+        $reslug = (bool) $this->option('reslug');
 
         if ($dryRun === $apply) {
             $this->error('Pilih tepat satu: --dry-run atau --apply.');
 
             return self::FAILURE;
+        }
+
+        if ($reslug) {
+            return $this->handleReslug($dryRun);
         }
 
         $projectsBySlug = $this->projectsFromSessions();
@@ -119,6 +126,78 @@ class ClickSeedProjectsCommand extends Command
         return self::SUCCESS;
     }
 
+    private function handleReslug(bool $dryRun): int
+    {
+        $projects = Project::query()->orderBy('id')->get();
+        $assigned = $this->resolveProjectSlugs($projects);
+
+        $updated = 0;
+        $skippedConflict = 0;
+        $alreadyCorrect = 0;
+
+        $toApply = [];
+
+        foreach ($projects as $project) {
+            $target = $assigned[$project->id];
+            $base = SessionProjectSlug::fromLabel($project->name);
+
+            if ($target !== $base) {
+                $skippedConflict++;
+            }
+
+            if ($project->slug === $target) {
+                $alreadyCorrect++;
+
+                continue;
+            }
+
+            $toApply[] = ['project' => $project, 'target' => $target];
+            $updated++;
+        }
+
+        if (! $dryRun && $toApply !== []) {
+            foreach ($toApply as $row) {
+                $row['project']->update(['slug' => '__reslug-'.$row['project']->id]);
+            }
+
+            foreach ($toApply as $row) {
+                $row['project']->update(['slug' => $row['target']]);
+            }
+        }
+
+        $prefix = $dryRun ? 'akan ' : '';
+        $this->line("Slug {$prefix}diperbarui: {$updated}");
+        $this->line("Slug dilewati (bentrok): {$skippedConflict}");
+        $this->line("Slug sudah benar: {$alreadyCorrect}");
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * @return array<int, string> project id => unique slug
+     */
+    private function resolveProjectSlugs(Collection $projects): array
+    {
+        $assigned = [];
+        $occupied = [];
+
+        foreach ($projects as $project) {
+            $base = SessionProjectSlug::fromLabel($project->name);
+            $slug = $base;
+            $suffix = 2;
+
+            while (isset($occupied[$slug])) {
+                $slug = $base.'-'.$suffix;
+                $suffix++;
+            }
+
+            $occupied[$slug] = $project->id;
+            $assigned[$project->id] = $slug;
+        }
+
+        return $assigned;
+    }
+
     /**
      * @return array<string, string> slug => display name
      */
@@ -138,7 +217,7 @@ class ClickSeedProjectsCommand extends Command
             }
 
             $slug = SessionProjectSlug::fromLabel($label);
-            if ($slug === '' || isset($projects[$slug])) {
+            if (isset($projects[$slug])) {
                 continue;
             }
 

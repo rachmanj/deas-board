@@ -126,4 +126,80 @@ class ClickSeedProjectsCommandTest extends TestCase
         $this->assertSame(0, Project::count());
         $this->assertNull(Task::query()->where('code', 'CLK-300')->value('project_id'));
     }
+
+    public function test_apply_creates_clean_slug_from_em_dash_and_slash_labels(): void
+    {
+        Session::create(['label' => 'AccountingOne — LAP-KEU', 'topic_id' => '1', 'is_active' => true]);
+        Session::create(['label' => 'Pratasaba/Hotel', 'topic_id' => '2', 'is_active' => true]);
+
+        $this->artisan('click:seed-projects', ['--apply' => true])->assertSuccessful();
+
+        $this->assertDatabaseHas('projects', ['slug' => 'accountingone-lap-keu']);
+        $this->assertDatabaseHas('projects', ['slug' => 'pratasaba-hotel']);
+    }
+
+    public function test_reslug_fixes_messy_project_slugs(): void
+    {
+        Project::create([
+            'slug' => 'accountingone-—-lap-keu',
+            'name' => 'AccountingOne — LAP-KEU',
+            'color' => '#64748b',
+            'is_active' => true,
+        ]);
+        Project::create([
+            'slug' => 'pratasaba/hotel',
+            'name' => 'Pratasaba/Hotel',
+            'color' => '#64748b',
+            'is_active' => true,
+        ]);
+
+        $this->artisan('click:seed-projects', ['--reslug' => true, '--apply' => true])
+            ->assertSuccessful()
+            ->expectsOutputToContain('Slug diperbarui: 2');
+
+        $this->assertDatabaseHas('projects', ['slug' => 'accountingone-lap-keu']);
+        $this->assertDatabaseHas('projects', ['slug' => 'pratasaba-hotel']);
+    }
+
+    public function test_reslug_is_idempotent(): void
+    {
+        Project::create([
+            'slug' => 'accountingone-lap-keu',
+            'name' => 'AccountingOne — LAP-KEU',
+            'color' => '#64748b',
+            'is_active' => true,
+        ]);
+
+        $this->artisan('click:seed-projects', ['--reslug' => true, '--apply' => true])
+            ->assertSuccessful()
+            ->expectsOutputToContain('Slug sudah benar: 1')
+            ->expectsOutputToContain('Slug diperbarui: 0');
+
+        $this->artisan('click:seed-projects', ['--reslug' => true, '--apply' => true])
+            ->assertSuccessful()
+            ->expectsOutputToContain('Slug sudah benar: 1')
+            ->expectsOutputToContain('Slug diperbarui: 0');
+    }
+
+    public function test_reslug_assigns_suffix_when_names_collide(): void
+    {
+        Project::create([
+            'slug' => 'alpha',
+            'name' => 'Alpha',
+            'color' => '#64748b',
+            'is_active' => true,
+        ]);
+        Project::create([
+            'slug' => 'alpha-messy',
+            'name' => 'Alpha',
+            'color' => '#64748b',
+            'is_active' => true,
+        ]);
+
+        $this->artisan('click:seed-projects', ['--reslug' => true, '--apply' => true])
+            ->assertSuccessful();
+
+        $this->assertDatabaseHas('projects', ['slug' => 'alpha']);
+        $this->assertDatabaseHas('projects', ['slug' => 'alpha-2']);
+    }
 }
