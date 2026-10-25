@@ -94,7 +94,7 @@ class CommentController extends Controller
         $comment->edited_at = now();
         $comment->save();
 
-        MentionParser::sync($comment->id, $comment->body_md, $actor);
+        MentionParser::sync($comment->id, $comment->body_md, $actor, false);
 
         return ApiResponse::data($this->commentPayload($comment->fresh(['mentions'])));
     }

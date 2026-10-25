@@ -13,6 +13,7 @@ use App\Support\ApiResponse;
 use App\Support\TaskRules;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 class TaskController extends Controller
 {
     public function index(Request $request)
@@ -147,6 +148,7 @@ class TaskController extends Controller
             'status' => ['sometimes', TaskRules::statusRule()],
             'priority' => ['sometimes', TaskRules::priorityRule()],
             'assignee' => ['sometimes', 'nullable', 'string'],
+            'session_topic_id' => ['sometimes', 'nullable', 'string'],
             'assignee_session_id' => ['sometimes', 'nullable', 'integer', 'exists:sessions,id'],
             'project_id' => ['sometimes', 'nullable', 'integer', 'exists:projects,id'],
             'due_date' => ['sometimes', 'nullable', 'date'],
@@ -203,6 +205,7 @@ class TaskController extends Controller
             'status' => ['sometimes', TaskRules::statusRule()],
             'priority' => ['sometimes', TaskRules::priorityRule()],
             'assignee' => ['sometimes', 'nullable', 'string'],
+            'session_topic_id' => ['sometimes', 'nullable', 'string'],
             'assignee_session_id' => ['sometimes', 'nullable', 'integer', 'exists:sessions,id'],
             'project_id' => ['sometimes', 'nullable', 'integer', 'exists:projects,id'],
             'due_date' => ['sometimes', 'nullable', 'date'],
@@ -233,7 +236,9 @@ class TaskController extends Controller
             $changes['priority'] = ['old' => $task->priority, 'new' => $validated['priority']];
             $task->priority = $validated['priority'];
         }
-        if (array_key_exists('assignee', $validated) || array_key_exists('assignee_session_id', $validated)) {
+        if (array_key_exists('assignee', $validated)
+            || array_key_exists('assignee_session_id', $validated)
+            || array_key_exists('session_topic_id', $validated)) {
             $newAssignee = $this->resolveAssigneeSessionId($validated);
             $changes['assignee_session_id'] = ['old' => $task->assignee_session_id, 'new' => $newAssignee];
             $task->assignee_session_id = $newAssignee;
@@ -281,14 +286,25 @@ class TaskController extends Controller
             return $validated['assignee_session_id'];
         }
 
-        if (! empty($validated['assignee'])) {
-            $session = Session::query()->where('topic_id', $validated['assignee'])->first();
-            if ($session) {
-                return $session->id;
-            }
+        $topicId = null;
+        if (array_key_exists('session_topic_id', $validated)) {
+            $topicId = $validated['session_topic_id'];
+        } elseif (! empty($validated['assignee'])) {
+            $topicId = $validated['assignee'];
         }
 
-        return null;
+        if ($topicId === null || $topicId === '') {
+            return null;
+        }
+
+        $session = Session::query()->where('topic_id', $topicId)->first();
+        if (! $session) {
+            throw ValidationException::withMessages([
+                'session_topic_id' => ['Sesi dengan topik tersebut tidak ditemukan.'],
+            ]);
+        }
+
+        return $session->id;
     }
 
     public static function notifyAssigneeStatusChanged(Task $task): void

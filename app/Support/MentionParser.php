@@ -55,7 +55,7 @@ class MentionParser
         return $unique;
     }
 
-    public static function sync(int $commentId, string $bodyMd, object $author): void
+    public static function sync(int $commentId, string $bodyMd, object $author, bool $notify = true): void
     {
         CommentMention::query()->where('comment_id', $commentId)->delete();
 
@@ -69,7 +69,7 @@ class MentionParser
                 'mentionable_id' => $target->getKey(),
             ]);
 
-            if (self::isSameEntity($author, $target)) {
+            if (! $notify || self::isSameEntity($author, $target)) {
                 continue;
             }
 

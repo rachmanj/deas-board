@@ -43,6 +43,31 @@ class CommentApiTest extends TestCase
         $this->assertSame($target->id, $notification->notifiable_id);
     }
 
+    public function test_edit_comment_does_not_create_duplicate_mention_notifications(): void
+    {
+        $author = Session::create(['label' => 'Author', 'topic_id' => '550', 'is_active' => true]);
+        $target = Session::create(['label' => 'Target', 'topic_id' => '551', 'is_active' => true]);
+        $task = Task::create([
+            'code' => 'CLK-4',
+            'title' => 'Mention edit',
+            'status' => 'todo',
+            'priority' => 'normal',
+        ]);
+
+        $this->asSession($author)->postJson("/api/tasks/{$task->id}/comments", [
+            'body_md' => 'Hai @551',
+        ])->assertCreated();
+
+        $this->assertSame(1, Notification::query()->where('type', 'comment.mention')->count());
+
+        $comment = TaskComment::query()->first();
+        $this->asSession($author)->patchJson("/api/comments/{$comment->id}", [
+            'body_md' => 'Hai lagi @551',
+        ])->assertOk();
+
+        $this->assertSame(1, Notification::query()->where('type', 'comment.mention')->count());
+    }
+
     public function test_edit_comment_stores_old_body_in_activity_log(): void
     {
         $author = Session::create(['label' => 'Author', 'topic_id' => '600', 'is_active' => true]);
