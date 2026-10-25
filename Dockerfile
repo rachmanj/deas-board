@@ -7,6 +7,8 @@ RUN npm run build
 
 FROM php:8.4-fpm
 
+ARG CACHEBUST=1
+
 RUN set -eux; \
     sed -i -E 's#http://(deb\.debian\.org|security\.debian\.org)#https://\1#g' \
         /etc/apt/sources.list.d/*.sources /etc/apt/sources.list 2>/dev/null || true
@@ -26,10 +28,11 @@ RUN printf '%s\n' \
       > /usr/local/etc/php/conf.d/zz-board.ini
 
 WORKDIR /var/www
+ARG CACHEBUST
 COPY . .
 COPY --from=assets /app/public/build ./public/build
 
-RUN rm -f bootstrap/cache/*.php \
+RUN rm -f bootstrap/cache/packages.php bootstrap/cache/services.php bootstrap/cache/config.php bootstrap/cache/routes-*.php \
     && php artisan package:discover --ansi
 
 RUN mkdir -p storage/framework/cache/data storage/framework/views storage/framework/sessions \
