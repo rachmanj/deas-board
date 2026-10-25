@@ -44,7 +44,7 @@ class ClickImportEmailsCommand extends Command
         }
 
         $limit = (int) $this->option('limit');
-        $entries = $this->collectEntries($path, $limit);
+        ['entries' => $entries, 'duplicates' => $duplicateMessageIds] = $this->collectEntries($path, $limit, $parser);
 
         $mailbox = 'INBOX';
         $uids = array_column($entries, 'uid');
@@ -87,6 +87,7 @@ class ClickImportEmailsCommand extends Command
             $this->line("Berkas .eml: {$emlCount}");
             $this->line("Akan diimpor: {$toImport}");
             $this->line("Sudah ada (dilewati): {$skipped}");
+            $this->line("Duplikat Message-ID (dilewati): {$duplicateMessageIds}");
 
             return self::SUCCESS;
         }
@@ -126,16 +127,18 @@ class ClickImportEmailsCommand extends Command
 
         $this->info("Email diimpor: {$imported}");
         $this->line("Sudah ada (dilewati): {$skipped}");
+        $this->line("Duplikat Message-ID (dilewati): {$duplicateMessageIds}");
 
         return self::SUCCESS;
     }
 
     /**
-     * @return list<array{uid: string, path: string, folder: string}>
+     * @return array{entries: list<array{uid: string, path: string, folder: string}>, duplicates: int}
      */
-    private function collectEntries(string $dir, int $limit): array
+    private function collectEntries(string $dir, int $limit, EmlMetadataParser $parser): array
     {
         $entries = [];
+        $duplicates = 0;
         $folders = File::directories($dir);
 
         foreach ($folders as $folder) {
@@ -156,14 +159,36 @@ class ClickImportEmailsCommand extends Command
 
             $count = $emlFiles->count();
             $index = 0;
+            $seenMessageIds = [];
+            $baseUidUsedForMessageId = false;
 
             foreach ($emlFiles as $file) {
                 if ($limit > 0 && count($entries) >= $limit) {
-                    return $entries;
+                    return ['entries' => $entries, 'duplicates' => $duplicates];
                 }
 
                 $index++;
-                $uid = $count > 1 ? "{$baseUid}-{$index}" : $baseUid;
+                $raw = File::get($file->getPathname());
+                $messageId = $parser->parse($raw, filemtime($file->getPathname()))['message_id'] ?? null;
+                $messageId = is_string($messageId) ? trim($messageId) : null;
+
+                if ($messageId !== null && $messageId !== '') {
+                    if (isset($seenMessageIds[$messageId])) {
+                        $duplicates++;
+
+                        continue;
+                    }
+                    $seenMessageIds[$messageId] = true;
+
+                    if (! $baseUidUsedForMessageId) {
+                        $uid = $baseUid;
+                        $baseUidUsedForMessageId = true;
+                    } else {
+                        $uid = "{$baseUid}-{$index}";
+                    }
+                } else {
+                    $uid = $count > 1 ? "{$baseUid}-{$index}" : $baseUid;
+                }
 
                 $entries[] = [
                     'uid' => $uid,
@@ -173,7 +198,7 @@ class ClickImportEmailsCommand extends Command
             }
         }
 
-        return $entries;
+        return ['entries' => $entries, 'duplicates' => $duplicates];
     }
 
     private function resolvePath(string $path): string

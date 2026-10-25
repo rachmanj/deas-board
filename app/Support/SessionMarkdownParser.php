@@ -28,16 +28,21 @@ class SessionMarkdownParser
             }
 
             $topicId = $topicMatch[1];
-            $labelCell = $cells[1] ?? '';
-            $notesCell = $cells[2] ?? null;
+            $appCell = $cells[1] ?? '';
+            $roleCell = trim($cells[2] ?? '');
+            $detailCell = trim($cells[3] ?? '');
 
-            $label = $this->cleanLabel($labelCell);
+            $label = $this->cleanLabel($appCell);
             if ($label === '') {
                 continue;
             }
 
-            $notes = $notesCell !== null && $notesCell !== ''
-                ? mb_substr(trim($notesCell), 0, 500)
+            $notesParts = array_values(array_filter(
+                [$roleCell, $detailCell],
+                fn (string $part) => $part !== '',
+            ));
+            $notes = $notesParts !== []
+                ? mb_substr(implode(' — ', $notesParts), 0, 500)
                 : null;
 
             $rows[] = [

@@ -12,6 +12,7 @@ class ClickImportSessionsCommand extends Command
 {
     protected $signature = 'click:import-sessions
                             {--from= : Path to markdown source file}
+                            {--extra-sessions= : Path to JSON array of extra sessions (topic_id, label, notes)}
                             {--chat-id= : Optional chat_id for new sessions}
                             {--dry-run : Preview import without writing}
                             {--apply : Apply import to database}';
@@ -44,6 +45,11 @@ class ClickImportSessionsCommand extends Command
         }
 
         $rows = $parser->parse(File::get($path));
+        $merged = $this->mergeExtraSessions($rows);
+        if ($merged === null) {
+            return self::FAILURE;
+        }
+        $rows = $merged;
         $chatId = $this->option('chat-id');
         $chatId = is_string($chatId) && $chatId !== '' ? $chatId : null;
 
@@ -110,6 +116,62 @@ class ClickImportSessionsCommand extends Command
         $this->line("Sesi sudah ada (dilewati): {$existingCount}");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * @param  list<array{topic_id: string, label: string, notes: string|null}>  $rows
+     * @return list<array{topic_id: string, label: string, notes: string|null}>|null
+     */
+    private function mergeExtraSessions(array $rows): ?array
+    {
+        $extra = $this->option('extra-sessions');
+        if (! is_string($extra) || $extra === '') {
+            return $rows;
+        }
+
+        $extraPath = $this->resolvePath($extra);
+        if (! File::isFile($extraPath)) {
+            $this->error("Berkas extra-sessions tidak ditemukan: {$extraPath}");
+
+            return null;
+        }
+
+        $decoded = json_decode(File::get($extraPath), true);
+        if (! is_array($decoded)) {
+            $this->error('Berkas extra-sessions harus berisi larik JSON.');
+
+            return null;
+        }
+
+        $topicIds = array_flip(array_column($rows, 'topic_id'));
+
+        foreach ($decoded as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $topicId = $item['topic_id'] ?? null;
+            $label = $item['label'] ?? null;
+            if (! is_string($topicId) || $topicId === '' || ! is_string($label) || $label === '') {
+                continue;
+            }
+
+            if (isset($topicIds[$topicId])) {
+                continue;
+            }
+
+            $notes = $item['notes'] ?? null;
+            $notes = is_string($notes) && $notes !== '' ? mb_substr($notes, 0, 500) : null;
+
+            $rows[] = [
+                'topic_id' => $topicId,
+                'label' => $label,
+                'notes' => $notes,
+            ];
+            $topicIds[$topicId] = true;
+        }
+
+        return $rows;
     }
 
     private function resolvePath(string $from): string

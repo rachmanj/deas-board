@@ -70,4 +70,24 @@ class ClickImportEmailsCommandTest extends TestCase
 
         $this->assertSame(0, Email::count());
     }
+
+    public function test_skips_duplicate_message_id_in_same_uid_folder(): void
+    {
+        $dir = base_path('tests/fixtures/emails-dedupe');
+
+        $this->artisan('click:import-emails', [
+            '--dir' => $dir,
+            '--dry-run' => true,
+        ])
+            ->assertSuccessful()
+            ->expectsOutputToContain('Duplikat Message-ID (dilewati): 1');
+
+        $this->artisan('click:import-emails', [
+            '--dir' => $dir,
+            '--apply' => true,
+        ])->assertSuccessful();
+
+        $this->assertSame(1, Email::count());
+        $this->assertNotNull(Email::query()->where('uid', '903')->first());
+    }
 }
