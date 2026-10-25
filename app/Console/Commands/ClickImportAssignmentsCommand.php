@@ -53,6 +53,7 @@ class ClickImportAssignmentsCommand extends Command
         }
 
         $created = 0;
+        $createdWithoutAssignee = 0;
         $skipped = 0;
         $failed = 0;
         $planRows = [];
@@ -67,27 +68,42 @@ class ClickImportAssignmentsCommand extends Command
 
             $uid = (string) ($item['uid'] ?? '');
             $externalRef = $item['external_ref'] ?? null;
-            $sessionTopicId = isset($item['session_topic_id']) ? (string) $item['session_topic_id'] : null;
+            $hasSessionTopic = array_key_exists('session_topic_id', $item)
+                && $item['session_topic_id'] !== null
+                && (string) $item['session_topic_id'] !== '';
+            $sessionTopicId = $hasSessionTopic ? (string) $item['session_topic_id'] : null;
 
             $email = $uid !== ''
                 ? Email::query()->where('mailbox', 'INBOX')->where('uid', $uid)->first()
                 : null;
 
-            $session = $sessionTopicId !== null
-                ? Session::query()->where('topic_id', $sessionTopicId)->first()
-                : null;
-
-            if ($email === null || $session === null) {
+            if ($email === null) {
                 $failed++;
-                $reason = $email === null ? 'email tidak ditemukan' : 'sesi tidak ditemukan';
                 $planRows[] = [
                     'uid' => $uid,
                     'external_ref' => (string) ($externalRef ?? '-'),
-                    'hasil' => "gagal ({$reason})",
+                    'hasil' => 'gagal (email tidak ditemukan)',
                 ];
 
                 continue;
             }
+
+            $session = $hasSessionTopic
+                ? Session::query()->where('topic_id', $sessionTopicId)->first()
+                : null;
+
+            if ($hasSessionTopic && $session === null) {
+                $failed++;
+                $planRows[] = [
+                    'uid' => $uid,
+                    'external_ref' => (string) ($externalRef ?? '-'),
+                    'hasil' => 'gagal (sesi tidak ditemukan)',
+                ];
+
+                continue;
+            }
+
+            $createdLabel = $hasSessionTopic ? 'dibuat' : 'dibuat (tanpa penanggung jawab)';
 
             $alreadyLinked = $externalRef !== null && $externalRef !== ''
                 && Task::query()
@@ -107,17 +123,21 @@ class ClickImportAssignmentsCommand extends Command
             }
 
             if ($dryRun) {
-                $created++;
+                if ($hasSessionTopic) {
+                    $created++;
+                } else {
+                    $createdWithoutAssignee++;
+                }
                 $planRows[] = [
                     'uid' => $uid,
                     'external_ref' => (string) ($externalRef ?? '-'),
-                    'hasil' => 'dibuat',
+                    'hasil' => $createdLabel,
                 ];
 
                 continue;
             }
 
-            DB::transaction(function () use ($item, $email, $session, &$created) {
+            DB::transaction(function () use ($item, $email, $session, $hasSessionTopic, &$created, &$createdWithoutAssignee) {
                 $placeholder = 'tmp-'.uniqid();
 
                 $task = Task::create([
@@ -126,7 +146,7 @@ class ClickImportAssignmentsCommand extends Command
                     'description_md' => $item['description'] ?? null,
                     'status' => (string) ($item['status'] ?? 'todo'),
                     'priority' => (string) ($item['priority'] ?? 'normal'),
-                    'assignee_session_id' => $session->id,
+                    'assignee_session_id' => $session?->id,
                     'source' => 'email',
                     'external_ref' => $item['external_ref'] ?? null,
                 ]);
@@ -154,13 +174,17 @@ class ClickImportAssignmentsCommand extends Command
                     'external_ref' => $task->external_ref,
                 ]);
 
-                $created++;
+                if ($hasSessionTopic) {
+                    $created++;
+                } else {
+                    $createdWithoutAssignee++;
+                }
             });
 
             $planRows[] = [
                 'uid' => $uid,
                 'external_ref' => (string) ($externalRef ?? '-'),
-                'hasil' => 'dibuat',
+                'hasil' => $createdLabel,
             ];
         }
 
@@ -169,8 +193,9 @@ class ClickImportAssignmentsCommand extends Command
         }
 
         $this->line("Dibuat: {$created}");
-        $this->line("Dilewati: {$skipped}");
+        $this->line("Dibuat tanpa penanggung jawab: {$createdWithoutAssignee}");
         $this->line("Gagal: {$failed}");
+        $this->line("Dilewati: {$skipped}");
 
         return self::SUCCESS;
     }

@@ -71,6 +71,38 @@ class ClickImportAssignmentsCommandTest extends TestCase
         $this->assertSame(1, Task::query()->where('external_ref', 'ext-5501')->count());
     }
 
+    public function test_null_session_topic_id_creates_task_without_assignee(): void
+    {
+        Email::create([
+            'uid' => '5503',
+            'mailbox' => 'INBOX',
+            'status' => 'arsip',
+        ]);
+
+        $jsonPath = $this->writeAssignmentsJson([
+            [
+                'uid' => '5503',
+                'title' => 'Tanpa penanggung jawab',
+                'session_topic_id' => null,
+                'status' => 'todo',
+                'priority' => 'normal',
+                'external_ref' => 'ext-no-assignee',
+            ],
+        ]);
+
+        $this->artisan('click:import-assignments', [
+            '--from' => $jsonPath,
+            '--apply' => true,
+        ])
+            ->assertSuccessful()
+            ->expectsOutputToContain('Dibuat tanpa penanggung jawab: 1')
+            ->expectsOutputToContain('Gagal: 0');
+
+        $task = Task::query()->where('external_ref', 'ext-no-assignee')->first();
+        $this->assertNotNull($task);
+        $this->assertNull($task->assignee_session_id);
+    }
+
     public function test_unknown_session_is_reported_as_failed(): void
     {
         Email::create([
