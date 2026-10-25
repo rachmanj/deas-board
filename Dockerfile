@@ -29,6 +29,9 @@ WORKDIR /var/www
 COPY . .
 COPY --from=assets /app/public/build ./public/build
 
+RUN rm -f bootstrap/cache/*.php \
+    && php artisan package:discover --ansi
+
 RUN mkdir -p storage/framework/cache/data storage/framework/views storage/framework/sessions \
              storage/app/private storage/logs \
     && chown -R www-data:www-data storage bootstrap/cache
