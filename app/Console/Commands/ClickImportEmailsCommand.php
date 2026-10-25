@@ -139,6 +139,7 @@ class ClickImportEmailsCommand extends Command
     {
         $entries = [];
         $duplicates = 0;
+        $usedUids = [];
         $folders = File::directories($dir);
 
         foreach ($folders as $folder) {
@@ -160,7 +161,7 @@ class ClickImportEmailsCommand extends Command
             $count = $emlFiles->count();
             $index = 0;
             $seenMessageIds = [];
-            $baseUidUsedForMessageId = false;
+            $folderBaseUidUsed = false;
 
             foreach ($emlFiles as $file) {
                 if ($limit > 0 && count($entries) >= $limit) {
@@ -179,16 +180,21 @@ class ClickImportEmailsCommand extends Command
                         continue;
                     }
                     $seenMessageIds[$messageId] = true;
-
-                    if (! $baseUidUsedForMessageId) {
-                        $uid = $baseUid;
-                        $baseUidUsedForMessageId = true;
-                    } else {
-                        $uid = "{$baseUid}-{$index}";
-                    }
-                } else {
-                    $uid = $count > 1 ? "{$baseUid}-{$index}" : $baseUid;
                 }
+
+                $fromFile = $this->uidFromFilename($file->getFilename());
+                if ($fromFile !== null) {
+                    $candidate = $fromFile;
+                } elseif ($count === 1) {
+                    $candidate = $baseUid;
+                } elseif ($messageId !== null && $messageId !== '' && ! $folderBaseUidUsed) {
+                    $candidate = $baseUid;
+                    $folderBaseUidUsed = true;
+                } else {
+                    $candidate = "{$baseUid}-{$index}";
+                }
+
+                $uid = $this->allocateUid($candidate, $usedUids);
 
                 $entries[] = [
                     'uid' => $uid,
@@ -199,6 +205,38 @@ class ClickImportEmailsCommand extends Command
         }
 
         return ['entries' => $entries, 'duplicates' => $duplicates];
+    }
+
+    private function uidFromFilename(string $filename): ?string
+    {
+        $base = pathinfo($filename, PATHINFO_FILENAME);
+        if (! is_string($base) || ! preg_match('/^uid(\d+)/i', $base, $match)) {
+            return null;
+        }
+
+        return $match[1];
+    }
+
+    /**
+     * @param  array<string, true>  $usedUids
+     */
+    private function allocateUid(string $candidate, array &$usedUids): string
+    {
+        if (! isset($usedUids[$candidate])) {
+            $usedUids[$candidate] = true;
+
+            return $candidate;
+        }
+
+        $suffix = 2;
+        while (isset($usedUids["{$candidate}-{$suffix}"])) {
+            $suffix++;
+        }
+
+        $uid = "{$candidate}-{$suffix}";
+        $usedUids[$uid] = true;
+
+        return $uid;
     }
 
     private function resolvePath(string $path): string

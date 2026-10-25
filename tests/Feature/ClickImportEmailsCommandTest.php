@@ -90,4 +90,18 @@ class ClickImportEmailsCommandTest extends TestCase
         $this->assertSame(1, Email::count());
         $this->assertNotNull(Email::query()->where('uid', '903')->first());
     }
+
+    public function test_uid_from_filename_when_multiple_eml_in_one_folder(): void
+    {
+        $dir = base_path('tests/fixtures/emails-multi-uid');
+
+        $this->artisan('click:import-emails', [
+            '--dir' => $dir,
+            '--apply' => true,
+        ])->assertSuccessful();
+
+        $this->assertSame(2, Email::count());
+        $this->assertNotNull(Email::query()->where('uid', '115')->first());
+        $this->assertNotNull(Email::query()->where('uid', '116')->first());
+    }
 }
