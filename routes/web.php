@@ -5,6 +5,7 @@ use App\Http\Controllers\Web\BoardController;
 use App\Http\Controllers\Web\CommentController;
 use App\Http\Controllers\Web\LabelController;
 use App\Http\Controllers\Web\MentionController;
+use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\SessionController;
 use App\Http\Controllers\Web\TaskController;
 use App\Http\Controllers\Web\TaskListController;
@@ -21,6 +22,8 @@ Route::post('/logout', [LoginController::class, 'logout'])
     ->name('logout');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
+    Route::patch('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::get('/', [BoardController::class, 'index'])->name('board');
     Route::get('/tasks', [TaskListController::class, 'index'])->name('tasks.index');
     Route::get('/tasks/create', [TaskController::class, 'create'])->name('tasks.create');

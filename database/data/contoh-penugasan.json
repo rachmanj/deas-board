@@ -1,0 +1,24 @@
+[
+    {
+        "uid": "contoh-uid-001",
+        "title": "Contoh penugasan pertama",
+        "description": "Deskripsi contoh untuk impor penugasan.",
+        "session_topic_id": "999001",
+        "status": "todo",
+        "priority": "normal",
+        "external_ref": "contoh-ext-ref-001",
+        "email_summary": "Ringkasan email contoh untuk baris pertama.",
+        "email_status": "baru"
+    },
+    {
+        "uid": "contoh-uid-002",
+        "title": "Contoh penugasan kedua",
+        "description": "Baris kedua hanya sebagai contoh format.",
+        "session_topic_id": "999002",
+        "status": "in_progress",
+        "priority": "high",
+        "external_ref": "contoh-ext-ref-002",
+        "email_summary": "Ringkasan email contoh untuk baris kedua.",
+        "email_status": "baru"
+    }
+]

@@ -1,0 +1,8 @@
+From: Alice Example <alice@example.com>
+To: board@example.com
+Subject: Fixture email satu
+Date: Mon, 20 Oct 2026 08:30:00 +0000
+Message-ID: <fixture-901@example.com>
+Content-Type: text/plain; charset=utf-8
+
+Isi badan email ini tidak boleh disimpan ke database.

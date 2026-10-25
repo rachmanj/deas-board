@@ -51,6 +51,10 @@
                 </form>
                 <div class="flex items-center gap-2 text-sm text-zinc-400">
                     <span>{{ auth()->user()->name }}</span>
+                    <a href="{{ route('profile') }}"
+                       class="min-h-11 rounded-lg border border-zinc-800 px-3 leading-[2.75rem] text-zinc-400 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                        Profil
+                    </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit"
