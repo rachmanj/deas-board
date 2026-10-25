@@ -25,6 +25,7 @@ RUN printf '%s\n' \
       'post_max_size=20M' \
       'memory_limit=-1' \
       'max_execution_time=0' \
+      'expose_php=Off' \
       > /usr/local/etc/php/conf.d/zz-board.ini
 
 WORKDIR /var/www
@@ -44,4 +45,6 @@ COPY docker/nginx.conf /etc/nginx/sites-enabled/default
 COPY docker/scheme.conf /etc/nginx/conf.d/scheme.conf
 
 EXPOSE 80
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=40s \
+    CMD curl -fsS http://127.0.0.1/login || wget -q -O- http://127.0.0.1/login
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]

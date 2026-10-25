@@ -10,3 +10,5 @@ storage/framework/sessions/*
 database/*.sqlite
 tests
 docs
+.phpunit.result.cache
+.phpunit.cache
