@@ -52,7 +52,7 @@
                             $priorityClass = match ($task->priority) {
                                 'urgent' => 'text-red-400',
                                 'high' => 'text-amber-400',
-                                'low' => 'text-zinc-500',
+                                'low' => 'text-zinc-400',
                                 default => 'text-zinc-400',
                             };
                             $ageDays = $task->created_at?->startOfDay()->diffInDays(now()->startOfDay());
@@ -61,7 +61,7 @@
                             tabindex="0" role="link"
                             onclick="window.location='{{ route('tasks.show', $task) }}'"
                             onkeydown="if (event.key === 'Enter') { window.location='{{ route('tasks.show', $task) }}'; }">
-                            <td class="px-3 py-2 font-mono text-xs text-zinc-500">{{ $task->code }}</td>
+                            <td class="px-3 py-2 font-mono text-xs text-zinc-400">{{ $task->code }}</td>
                             <td class="px-3 py-2 text-zinc-100">{{ $task->title }}</td>
                             <td class="px-3 py-2 text-zinc-400">{{ $statusLabels[$task->status] ?? $task->status }}</td>
                             <td class="px-3 py-2 {{ $priorityClass }}">{{ $priorityLabels[$task->priority] ?? $task->priority }}</td>

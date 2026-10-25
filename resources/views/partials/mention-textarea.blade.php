@@ -26,8 +26,8 @@
                         class="flex w-full min-h-10 items-center gap-2 px-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500"
                         role="option">
                     <span x-text="item.label" class="font-medium"></span>
-                    <span x-show="item.type === 'session'" class="text-xs text-zinc-500" x-text="'@' + item.topic"></span>
-                    <span x-show="item.type === 'user'" class="text-xs text-zinc-500">pengguna</span>
+                    <span x-show="item.type === 'session'" class="text-xs text-zinc-400" x-text="'@' + item.topic"></span>
+                    <span x-show="item.type === 'user'" class="text-xs text-zinc-400">pengguna</span>
                 </button>
             </li>
         </template>

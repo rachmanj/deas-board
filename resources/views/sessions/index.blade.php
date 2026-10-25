@@ -62,13 +62,13 @@
                             <tr class="align-top">
                                 <td class="px-3 py-3 text-zinc-100">{{ $session->label }}</td>
                                 <td class="px-3 py-3 font-mono text-xs text-zinc-400">{{ $session->topic_id }}</td>
-                                <td class="px-3 py-3 text-zinc-400">{{ $session->chat_id ?? '—' }}</td>
-                                <td class="px-3 py-3 text-zinc-400">{{ $session->host ?? '—' }}</td>
+                                <td class="px-3 py-3 text-zinc-400">{{ $session->chat_id ?? 'Belum diisi' }}</td>
+                                <td class="px-3 py-3 text-zinc-400">{{ $session->host ?? 'Belum diisi' }}</td>
                                 <td class="px-3 py-3">
                                     @if($session->is_active)
                                         <span class="text-teal-500">Ya</span>
                                     @else
-                                        <span class="text-zinc-500">Tidak</span>
+                                        <span class="text-zinc-400">Tidak</span>
                                     @endif
                                 </td>
                                 <td class="px-3 py-3 text-zinc-300">{{ $session->active_tokens_count }}</td>
@@ -104,15 +104,15 @@
                                     </div>
                                     @if($session->tokens->isNotEmpty())
                                         <div class="mt-3 space-y-2 border-t border-zinc-800 pt-3">
-                                            <p class="text-xs font-medium text-zinc-500">Token</p>
+                                            <p class="text-xs font-medium text-zinc-400">Token</p>
                                             @foreach($session->tokens as $token)
                                                 <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
                                                     <div class="min-w-0 text-zinc-400">
                                                         <span class="text-zinc-300">{{ $token->name }}</span>
-                                                        <span class="text-zinc-600">·</span>
+                                                        <span class="text-zinc-400">·</span>
                                                         dibuat {{ $token->created_at->format('Y-m-d H:i') }}
                                                         @if($token->last_used_at)
-                                                            <span class="text-zinc-600">·</span>
+                                                            <span class="text-zinc-400">·</span>
                                                             terakhir {{ $token->last_used_at->format('Y-m-d H:i') }}
                                                         @endif
                                                     </div>
@@ -132,7 +132,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-3 py-6 text-center text-zinc-500">Belum ada sesi.</td>
+                                <td colspan="8" class="px-3 py-6 text-center text-zinc-400">Belum ada sesi.</td>
                             </tr>
                         @endforelse
                     </tbody>

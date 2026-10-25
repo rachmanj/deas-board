@@ -47,7 +47,7 @@
                     <label for="header-q" class="sr-only">Cari</label>
                     <input id="header-q" name="q" type="search" value="{{ request('q') }}"
                            placeholder="Cari task"
-                           class="min-h-11 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40">
+                           class="min-h-11 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 text-sm text-zinc-100 placeholder:text-zinc-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40">
                 </form>
                 <div class="flex items-center gap-2 text-sm text-zinc-400">
                     <span>{{ auth()->user()->name }}</span>

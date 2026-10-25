@@ -17,7 +17,7 @@
 
     $formatLogChanges = function ($log) {
         if (! is_array($log->changes) || $log->changes === []) {
-            return '—';
+            return 'Belum diisi';
         }
         $parts = [];
         foreach ($log->changes as $key => $value) {
@@ -42,7 +42,7 @@
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start">
         <div class="min-w-0 flex-1 space-y-4">
             <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4 sm:p-6">
-                <p class="font-mono text-xs text-zinc-500">{{ $task->code }}</p>
+                <p class="font-mono text-xs text-zinc-400">{{ $task->code }}</p>
                 <h2 class="mt-1 text-xl font-semibold text-zinc-100">{{ $task->title }}</h2>
 
                 @if($task->labels->isNotEmpty())
@@ -58,7 +58,7 @@
                         {!! \Illuminate\Support\Str::markdown($task->description_md) !!}
                     </div>
                 @else
-                    <p class="mt-4 text-sm text-zinc-500">Tidak ada deskripsi.</p>
+                    <p class="mt-4 text-sm text-zinc-400">Tidak ada deskripsi.</p>
                 @endif
             </div>
 
@@ -94,7 +94,7 @@
                         @endif
 
                         @if($topLevelComments->isEmpty())
-                            <p class="text-sm text-zinc-500">Belum ada komentar. Jadilah yang pertama menulis di diskusi ini.</p>
+                            <p class="text-sm text-zinc-400">Belum ada komentar. Jadilah yang pertama menulis di diskusi ini.</p>
                         @else
                             <div class="space-y-4">
                                 @foreach($topLevelComments as $comment)
@@ -128,23 +128,23 @@
 
                     <div x-show="tab === 'status'" x-cloak role="tabpanel">
                         @if($updates->isEmpty())
-                            <p class="text-sm text-zinc-500">Belum ada perubahan status.</p>
+                            <p class="text-sm text-zinc-400">Belum ada perubahan status.</p>
                         @else
                             <ul class="divide-y divide-zinc-800 text-sm">
                                 @foreach($updates as $update)
                                     <li class="py-3">
                                         <div class="flex flex-wrap gap-2 text-zinc-300">
                                             <span>{{ $statusLabels[$update->from_status] ?? $update->from_status }}</span>
-                                            <span class="text-zinc-500">→</span>
+                                            <span class="text-zinc-400">→</span>
                                             <span>{{ $statusLabels[$update->to_status] ?? $update->to_status }}</span>
                                         </div>
                                         @if($update->note)
                                             <p class="mt-1 text-zinc-400">{{ $update->note }}</p>
                                         @endif
                                         @if($update->evidence)
-                                            <p class="mt-1 text-xs text-zinc-500">Bukti: {{ $update->evidence }}</p>
+                                            <p class="mt-1 text-xs text-zinc-400">Bukti: {{ $update->evidence }}</p>
                                         @endif
-                                        <p class="mt-1 text-xs text-zinc-500">
+                                        <p class="mt-1 text-xs text-zinc-400">
                                             {{ $update->created_at?->format('d M Y H:i') }}
                                             · {{ $actorLabel($update->actor) }}
                                         </p>
@@ -156,7 +156,7 @@
 
                     <div x-show="tab === 'aktivitas'" x-cloak role="tabpanel">
                         @if($activityLogs->isEmpty())
-                            <p class="text-sm text-zinc-500">Belum ada aktivitas tercatat.</p>
+                            <p class="text-sm text-zinc-400">Belum ada aktivitas tercatat.</p>
                         @else
                             <ul class="divide-y divide-zinc-800 text-sm">
                                 @foreach($activityLogs as $log)
@@ -165,7 +165,7 @@
                                             <span class="font-mono text-xs text-teal-500/90">{{ $log->action }}</span>
                                             · {{ $formatLogChanges($log) }}
                                         </p>
-                                        <p class="mt-1 text-xs text-zinc-500">
+                                        <p class="mt-1 text-xs text-zinc-400">
                                             {{ $log->created_at?->format('d M Y H:i') }}
                                             · {{ $actorLabel($log->actor) }}
                                         </p>
@@ -188,15 +188,15 @@
             </div>
             <dl class="space-y-3 text-zinc-400">
                 <div>
-                    <dt class="text-xs text-zinc-500">Status</dt>
+                    <dt class="text-xs text-zinc-400">Status</dt>
                     <dd class="text-zinc-200">{{ $statusLabels[$task->status] ?? $task->status }}</dd>
                 </div>
                 <div>
-                    <dt class="text-xs text-zinc-500">Prioritas</dt>
+                    <dt class="text-xs text-zinc-400">Prioritas</dt>
                     <dd class="text-zinc-200">{{ $priorityLabels[$task->priority] ?? $task->priority }}</dd>
                 </div>
                 <div>
-                    <dt class="text-xs text-zinc-500">Sesi penanggung jawab</dt>
+                    <dt class="text-xs text-zinc-400">Sesi penanggung jawab</dt>
                     <dd class="text-zinc-200">
                         @if($task->assigneeSession)
                             {{ $task->assigneeSession->label }} ({{ $task->assigneeSession->topic_id }})
@@ -206,27 +206,27 @@
                     </dd>
                 </div>
                 <div>
-                    <dt class="text-xs text-zinc-500">Proyek</dt>
+                    <dt class="text-xs text-zinc-400">Proyek</dt>
                     <dd class="text-zinc-200">{{ $task->project?->name ?? 'Tidak ada' }}</dd>
                 </div>
                 <div>
-                    <dt class="text-xs text-zinc-500">Tenggat</dt>
+                    <dt class="text-xs text-zinc-400">Tenggat</dt>
                     <dd class="text-zinc-200">{{ $task->due_date?->format('d M Y') ?? 'Tidak ada' }}</dd>
                 </div>
                 <div>
-                    <dt class="text-xs text-zinc-500">Mulai</dt>
+                    <dt class="text-xs text-zinc-400">Mulai</dt>
                     <dd class="text-zinc-200">{{ $task->start_date?->format('d M Y') ?? 'Tidak ada' }}</dd>
                 </div>
                 <div>
-                    <dt class="text-xs text-zinc-500">Referensi eksternal</dt>
+                    <dt class="text-xs text-zinc-400">Referensi eksternal</dt>
                     <dd class="break-all text-zinc-200">{{ $task->external_ref ?? 'Tidak ada' }}</dd>
                 </div>
                 <div>
-                    <dt class="text-xs text-zinc-500">Dibuat</dt>
+                    <dt class="text-xs text-zinc-400">Dibuat</dt>
                     <dd class="text-zinc-200">{{ $task->created_at?->format('d M Y H:i') }}</dd>
                 </div>
                 <div>
-                    <dt class="text-xs text-zinc-500">Diperbarui</dt>
+                    <dt class="text-xs text-zinc-400">Diperbarui</dt>
                     <dd class="text-zinc-200">{{ $task->updated_at?->format('d M Y H:i') }}</dd>
                 </div>
             </dl>

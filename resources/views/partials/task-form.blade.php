@@ -47,7 +47,7 @@
             <label for="assignee_session_id" class="mb-1 block text-sm text-zinc-400">Sesi penanggung jawab</label>
             <select id="assignee_session_id" name="assignee_session_id"
                     class="min-h-11 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40">
-                <option value="">— Tidak ada —</option>
+                <option value="">Tanpa sesi</option>
                 @foreach($sessions as $session)
                     <option value="{{ $session->id }}" @selected((string) old('assignee_session_id', $task?->assignee_session_id) === (string) $session->id)>
                         {{ $session->label }} ({{ $session->topic_id }})
@@ -59,7 +59,7 @@
             <label for="project_id" class="mb-1 block text-sm text-zinc-400">Proyek</label>
             <select id="project_id" name="project_id"
                     class="min-h-11 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40">
-                <option value="">— Tidak ada —</option>
+                <option value="">Tanpa proyek</option>
                 @foreach($projects as $project)
                     <option value="{{ $project->id }}" @selected((string) old('project_id', $task?->project_id) === (string) $project->id)>
                         {{ $project->name }}
@@ -101,7 +101,7 @@
                 </label>
             </template>
         </div>
-        <p class="text-sm text-zinc-500" x-show="!loading && labels.length === 0">Belum ada label.</p>
+        <p class="text-sm text-zinc-400" x-show="!loading && labels.length === 0">Belum ada label.</p>
         <noscript>
             <div class="flex flex-wrap gap-2">
                 @forelse($labels as $label)
@@ -111,7 +111,7 @@
                         <span>{{ $label->name }}</span>
                     </label>
                 @empty
-                    <p class="text-sm text-zinc-500">Belum ada label.</p>
+                    <p class="text-sm text-zinc-400">Belum ada label.</p>
                 @endforelse
             </div>
         </noscript>

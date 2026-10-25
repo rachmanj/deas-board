@@ -2,12 +2,12 @@
     $priorityClass = match ($task->priority) {
         'urgent' => 'text-red-400',
         'high' => 'text-amber-400',
-        'low' => 'text-zinc-500',
+        'low' => 'text-zinc-400',
         default => 'text-zinc-400',
     };
 @endphp
 <article class="rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-sm">
-    <div class="mb-1 font-mono text-xs text-zinc-500">{{ $task->code }}</div>
+    <div class="mb-1 font-mono text-xs text-zinc-400">{{ $task->code }}</div>
     <h3 class="mb-2 font-medium text-zinc-100">
         <a href="{{ route('tasks.show', $task) }}" class="hover:text-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
             {{ $task->title }}

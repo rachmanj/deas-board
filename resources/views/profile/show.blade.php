@@ -16,11 +16,11 @@
             <h2 class="mb-3 text-base font-semibold text-zinc-100">Akun</h2>
             <dl class="space-y-2 text-sm">
                 <div>
-                    <dt class="text-zinc-500">Nama</dt>
+                    <dt class="text-zinc-400">Nama</dt>
                     <dd class="text-zinc-100">{{ auth()->user()->name }}</dd>
                 </div>
                 <div>
-                    <dt class="text-zinc-500">Email</dt>
+                    <dt class="text-zinc-400">Email</dt>
                     <dd class="text-zinc-100">{{ auth()->user()->email }}</dd>
                 </div>
             </dl>
@@ -43,7 +43,7 @@
                     <label for="password" class="mb-1 block text-sm text-zinc-400">Kata sandi baru</label>
                     <input id="password" name="password" type="password" required autocomplete="new-password"
                            class="min-h-11 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40">
-                    <p class="mt-1 text-xs text-zinc-500">Minimal 12 karakter.</p>
+                    <p class="mt-1 text-xs text-zinc-400">Minimal 12 karakter.</p>
                 </div>
                 <div>
                     <label for="password_confirmation" class="mb-1 block text-sm text-zinc-400">Ulangi kata sandi baru</label>

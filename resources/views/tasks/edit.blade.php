@@ -12,7 +12,7 @@
     @endif
 
     <div class="mx-auto max-w-2xl rounded-xl border border-zinc-800 bg-zinc-900 p-4 sm:p-6">
-        <p class="mb-1 font-mono text-xs text-zinc-500">{{ $task->code }}</p>
+        <p class="mb-1 font-mono text-xs text-zinc-400">{{ $task->code }}</p>
         <h2 class="mb-4 text-base font-semibold text-zinc-100">Ubah task</h2>
         @include('partials.task-form', [
             'task' => $task,

@@ -47,7 +47,7 @@
                                 'priorityLabels' => $priorityLabels,
                             ])
                         @empty
-                            <p class="px-2 py-4 text-center text-xs text-zinc-500">Kosong</p>
+                            <p class="px-2 py-4 text-center text-xs text-zinc-400">Kosong</p>
                         @endforelse
                     </div>
                 </section>
