@@ -31,7 +31,7 @@
             <dd class="text-right">{{ $task->comments_count }}</dd>
         </div>
     </dl>
-    <form method="POST" action="{{ route('tasks.status', $task) }}" class="flex items-center gap-2">
+    <form method="POST" action="{{ route('tasks.status', $task) }}" class="flex items-center gap-2" x-data="taskCardStatus()">
         @csrf
         @method('PATCH')
         <input type="hidden" name="redirect" value="{{ url()->current() }}">
@@ -41,11 +41,13 @@
             @endif
         @endforeach
         <label for="status-{{ $task->id }}" class="sr-only">Status</label>
-        <select id="status-{{ $task->id }}" name="status" onchange="this.form.submit()"
-                class="min-h-11 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-2 text-xs text-zinc-100 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40">
+        <select id="status-{{ $task->id }}" name="status" @change="onStatusChange($event)"
+                :disabled="saving"
+                class="min-h-11 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-2 text-xs text-zinc-100 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40 disabled:opacity-60">
             @foreach($statusLabels as $value => $label)
                 <option value="{{ $value }}" @selected($task->status === $value)>{{ $label }}</option>
             @endforeach
         </select>
+        <span x-show="saving" x-cloak class="shrink-0 text-xs text-zinc-400">Menyimpan...</span>
     </form>
 </article>

@@ -65,15 +65,141 @@ class WebTaskDetailTest extends TestCase
             'priority' => 'normal',
         ]);
 
+        $nonce = $this->commentFormNonceFromShowPage($user, $task);
+
         $this->actingAs($user)
             ->post(route('tasks.comments.store', $task), [
+                'form_nonce' => $nonce,
                 'body_md' => 'Komentar baru dari web',
             ])
-            ->assertRedirect(route('tasks.show', $task).'#diskusi');
+            ->assertRedirect(route('tasks.show', ['task' => $task, 'tab' => 'diskusi']));
 
         $this->actingAs($user)
             ->get(route('tasks.show', $task))
             ->assertSee('Komentar baru dari web');
+    }
+
+    public function test_duplicate_comment_nonce_is_rejected(): void
+    {
+        $user = $this->user();
+        $task = Task::create([
+            'code' => 'CLK-3B',
+            'title' => 'Nonce',
+            'status' => 'todo',
+            'priority' => 'normal',
+        ]);
+
+        $nonce = $this->commentFormNonceFromShowPage($user, $task);
+
+        $this->actingAs($user)
+            ->post(route('tasks.comments.store', $task), [
+                'form_nonce' => $nonce,
+                'body_md' => 'Satu kali saja',
+            ])
+            ->assertRedirect();
+
+        $this->actingAs($user)
+            ->post(route('tasks.comments.store', $task), [
+                'form_nonce' => $nonce,
+                'body_md' => 'Satu kali saja',
+            ])
+            ->assertRedirect(route('tasks.show', ['task' => $task, 'tab' => 'diskusi']))
+            ->assertSessionHasErrors(['body_md']);
+
+        $this->assertSame(1, TaskComment::query()->where('task_id', $task->id)->count());
+    }
+
+    public function test_two_distinct_comment_nonces_create_two_comments(): void
+    {
+        $user = $this->user();
+        $task = Task::create([
+            'code' => 'CLK-3C',
+            'title' => 'Dua nonce',
+            'status' => 'todo',
+            'priority' => 'normal',
+        ]);
+
+        $nonceOne = $this->commentFormNonceFromShowPage($user, $task);
+        $this->actingAs($user)
+            ->post(route('tasks.comments.store', $task), [
+                'form_nonce' => $nonceOne,
+                'body_md' => 'Komentar pertama',
+            ])
+            ->assertRedirect();
+
+        $nonceTwo = $this->commentFormNonceFromShowPage($user, $task);
+        $this->actingAs($user)
+            ->post(route('tasks.comments.store', $task), [
+                'form_nonce' => $nonceTwo,
+                'body_md' => 'Komentar kedua',
+            ])
+            ->assertRedirect();
+
+        $this->assertSame(2, TaskComment::query()->where('task_id', $task->id)->count());
+    }
+
+    public function test_task_detail_tab_links_include_perubahan_query(): void
+    {
+        $user = $this->user();
+        $task = Task::create([
+            'code' => 'CLK-TAB',
+            'title' => 'Tab URL',
+            'status' => 'todo',
+            'priority' => 'normal',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('tasks.show', $task))
+            ->assertOk()
+            ->assertSee('?tab=perubahan', false);
+    }
+
+    public function test_task_detail_perubahan_tab_is_active_from_query(): void
+    {
+        $user = $this->user();
+        $task = Task::create([
+            'code' => 'CLK-TAB2',
+            'title' => 'Tab aktif',
+            'status' => 'todo',
+            'priority' => 'normal',
+        ]);
+
+        ActivityLog::create([
+            'action' => 'task.created',
+            'subject_type' => Task::class,
+            'subject_id' => $task->id,
+            'actor_type' => User::class,
+            'actor_id' => $user->id,
+            'changes' => ['title' => $task->title],
+        ]);
+
+        $html = $this->actingAs($user)
+            ->get(route('tasks.show', ['task' => $task, 'tab' => 'perubahan']))
+            ->assertOk()
+            ->assertSee('task.created')
+            ->getContent();
+
+        $this->assertMatchesRegularExpression('/<div role="tabpanel" id="riwayat-perubahan"\s*>/', $html);
+        $this->assertDoesNotMatchRegularExpression('/<div role="tabpanel" id="riwayat-perubahan"\s+hidden/', $html);
+    }
+
+    public function test_task_detail_unknown_tab_falls_back_to_diskusi(): void
+    {
+        $user = $this->user();
+        $task = Task::create([
+            'code' => 'CLK-TAB3',
+            'title' => 'Tab ngawur',
+            'status' => 'todo',
+            'priority' => 'normal',
+        ]);
+
+        $html = $this->actingAs($user)
+            ->get(route('tasks.show', ['task' => $task, 'tab' => 'ngawur']))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertMatchesRegularExpression('/<div role="tabpanel" class="space-y-4"\s*>/', $html);
+        $this->assertMatchesRegularExpression('/<div role="tabpanel" id="riwayat-perubahan"\s+hidden/', $html);
     }
 
     public function test_reply_is_nested_under_parent(): void
@@ -169,8 +295,11 @@ class WebTaskDetailTest extends TestCase
             'priority' => 'normal',
         ]);
 
+        $nonce = $this->commentFormNonceFromShowPage($user, $task);
+
         $this->actingAs($user)
             ->post(route('tasks.comments.store', $task), [
+                'form_nonce' => $nonce,
                 'body_md' => 'Halo @888',
             ])
             ->assertRedirect();
@@ -178,5 +307,19 @@ class WebTaskDetailTest extends TestCase
         $this->assertSame(1, Notification::query()->where('type', 'comment.mention')->count());
         $notification = Notification::query()->first();
         $this->assertSame($target->id, $notification->notifiable_id);
+    }
+
+    private function commentFormNonceFromShowPage(User $user, Task $task): string
+    {
+        $html = $this->actingAs($user)
+            ->get(route('tasks.show', $task))
+            ->assertOk()
+            ->getContent();
+
+        if (! preg_match('/name="form_nonce" value="([^"]+)"/', $html, $matches)) {
+            $this->fail('form_nonce tidak ditemukan di halaman detail task.');
+        }
+
+        return $matches[1];
     }
 }

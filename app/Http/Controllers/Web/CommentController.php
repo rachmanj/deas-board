@@ -8,6 +8,7 @@ use App\Models\TaskComment;
 use App\Models\User;
 use App\Support\ActivityLogger;
 use App\Support\Actor;
+use App\Support\CommentFormNonce;
 use App\Support\MentionParser;
 use Illuminate\Http\Request;
 
@@ -15,6 +16,12 @@ class CommentController extends Controller
 {
     public function store(Request $request, Task $task)
     {
+        if (! CommentFormNonce::consume($request->input('form_nonce'))) {
+            return redirect()
+                ->route('tasks.show', ['task' => $task, 'tab' => 'diskusi'])
+                ->withErrors(['body_md' => 'Komentar ini sudah terkirim.']);
+        }
+
         $validated = $request->validate([
             'body_md' => ['required', 'string'],
         ]);
@@ -35,7 +42,7 @@ class CommentController extends Controller
             'task_id' => $task->id,
         ]);
 
-        return redirect()->route('tasks.show', $task)->withFragment('diskusi');
+        return redirect()->route('tasks.show', ['task' => $task, 'tab' => 'diskusi']);
     }
 
     public function reply(Request $request, Task $task, TaskComment $comment)
@@ -65,7 +72,7 @@ class CommentController extends Controller
             'parent_id' => $comment->id,
         ]);
 
-        return redirect()->route('tasks.show', $task)->withFragment('diskusi');
+        return redirect()->route('tasks.show', ['task' => $task, 'tab' => 'diskusi']);
     }
 
     public function update(Request $request, Task $task, TaskComment $comment)
@@ -93,7 +100,7 @@ class CommentController extends Controller
 
         MentionParser::sync($comment->id, $comment->body_md, $actor, false);
 
-        return redirect()->route('tasks.show', $task)->withFragment('diskusi');
+        return redirect()->route('tasks.show', ['task' => $task, 'tab' => 'diskusi']);
     }
 
     public function destroy(Request $request, Task $task, TaskComment $comment)
@@ -111,7 +118,7 @@ class CommentController extends Controller
 
         $comment->delete();
 
-        return redirect()->route('tasks.show', $task)->withFragment('diskusi');
+        return redirect()->route('tasks.show', ['task' => $task, 'tab' => 'diskusi']);
     }
 
     private function ensureUserAuthor(object $actor, TaskComment $comment): void

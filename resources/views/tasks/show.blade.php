@@ -62,27 +62,33 @@
                 @endif
             </div>
 
-            <div class="rounded-xl border border-zinc-800 bg-zinc-900" x-data="{ tab: 'diskusi' }" id="diskusi">
+            @php
+                $taskTabUrl = fn (string $tab) => route('tasks.show', ['task' => $task, 'tab' => $tab]);
+                $tabLinkClass = fn (string $tab) => $activeTab === $tab
+                    ? 'border-b-2 border-teal-500 text-teal-500'
+                    : 'text-zinc-400 hover:text-zinc-200';
+            @endphp
+            <div class="rounded-xl border border-zinc-800 bg-zinc-900" id="diskusi">
                 <div class="flex flex-wrap border-b border-zinc-800" role="tablist">
-                    <button type="button" role="tab" @click="tab = 'diskusi'"
-                            :class="tab === 'diskusi' ? 'border-b-2 border-teal-500 text-teal-500' : 'text-zinc-400'"
-                            class="min-h-11 px-4 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500">
+                    <a href="{{ $taskTabUrl('diskusi') }}" role="tab"
+                       aria-selected="{{ $activeTab === 'diskusi' ? 'true' : 'false' }}"
+                       class="min-h-11 px-4 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500 {{ $tabLinkClass('diskusi') }}">
                         Diskusi
-                    </button>
-                    <button type="button" role="tab" @click="tab = 'status'"
-                            :class="tab === 'status' ? 'border-b-2 border-teal-500 text-teal-500' : 'text-zinc-400'"
-                            class="min-h-11 px-4 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500">
+                    </a>
+                    <a href="{{ $taskTabUrl('status') }}" role="tab"
+                       aria-selected="{{ $activeTab === 'status' ? 'true' : 'false' }}"
+                       class="min-h-11 inline-flex items-center px-4 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500 {{ $tabLinkClass('status') }}">
                         Riwayat status
-                    </button>
-                    <button type="button" role="tab" @click="tab = 'aktivitas'"
-                            :class="tab === 'aktivitas' ? 'border-b-2 border-teal-500 text-teal-500' : 'text-zinc-400'"
-                            class="min-h-11 px-4 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500">
+                    </a>
+                    <a href="{{ $taskTabUrl('perubahan') }}" role="tab"
+                       aria-selected="{{ $activeTab === 'perubahan' ? 'true' : 'false' }}"
+                       class="min-h-11 inline-flex items-center px-4 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500 {{ $tabLinkClass('perubahan') }}">
                         Riwayat perubahan
-                    </button>
+                    </a>
                 </div>
 
                 <div class="p-4 sm:p-6">
-                    <div x-show="tab === 'diskusi'" role="tabpanel" class="space-y-4">
+                    <div role="tabpanel" class="space-y-4" @if($activeTab !== 'diskusi') hidden @endif>
                         @if($errors->any())
                             <div class="rounded-lg border border-red-900/50 bg-red-950/40 px-4 py-3 text-sm text-red-300" role="alert">
                                 <ul class="list-inside list-disc">
@@ -108,8 +114,10 @@
                             </div>
                         @endif
 
-                        <form method="POST" action="{{ route('tasks.comments.store', $task) }}" class="space-y-2 border-t border-zinc-800 pt-4">
+                        <form method="POST" action="{{ route('tasks.comments.store', $task) }}" class="space-y-2 border-t border-zinc-800 pt-4"
+                              x-data="submitForm('Mengirim...')" @submit="onFormSubmit">
                             @csrf
+                            <input type="hidden" name="form_nonce" value="{{ $commentFormNonce }}">
                             <label for="new-comment" class="block text-sm font-medium text-zinc-300">Tulis komentar</label>
                             @include('partials.mention-textarea', [
                                 'id' => 'new-comment',
@@ -119,14 +127,16 @@
                                 'required' => true,
                                 'value' => old('body_md'),
                             ])
-                            <button type="submit"
-                                    class="min-h-11 rounded-lg bg-teal-500 px-4 text-sm font-medium text-zinc-950 hover:bg-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                            <button type="submit" :disabled="processing"
+                                    class="min-h-11 rounded-lg bg-teal-500 px-4 text-sm font-medium text-zinc-950 hover:bg-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
+                                    data-submit-label="Kirim komentar"
+                                    x-text="buttonText()">
                                 Kirim komentar
                             </button>
                         </form>
                     </div>
 
-                    <div x-show="tab === 'status'" x-cloak role="tabpanel">
+                    <div role="tabpanel" @if($activeTab !== 'status') hidden @endif>
                         @if($updates->isEmpty())
                             <p class="text-sm text-zinc-400">Belum ada perubahan status.</p>
                         @else
@@ -154,7 +164,7 @@
                         @endif
                     </div>
 
-                    <div x-show="tab === 'aktivitas'" x-cloak role="tabpanel">
+                    <div role="tabpanel" id="riwayat-perubahan" @if($activeTab !== 'perubahan') hidden @endif>
                         @if($activityLogs->isEmpty())
                             <p class="text-sm text-zinc-400">Belum ada aktivitas tercatat.</p>
                         @else

@@ -1,7 +1,7 @@
 @if($totalTasks === 0)
     <div class="rounded-xl border border-zinc-800 bg-zinc-900 px-6 py-10 text-center text-sm text-zinc-400">
-        <p class="mb-2 text-zinc-100">Belum ada task.</p>
-        <p>Buat task pertama lewat API POST /api/tasks dengan judul dan penanggung jawab sesi.</p>
+        <p class="mb-2 text-zinc-100">Belum ada task. Klik <span class="text-zinc-300">Task baru</span> di atas untuk membuat yang pertama.</p>
+        <p class="mt-2 text-xs text-zinc-400">Sesi Hermes dapat membuat task lewat API.</p>
     </div>
 @elseif($hasActiveFilters && $isEmpty)
     <div class="rounded-xl border border-zinc-800 bg-zinc-900 px-6 py-10 text-center text-sm text-zinc-400">

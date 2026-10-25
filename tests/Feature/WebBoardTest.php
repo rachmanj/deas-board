@@ -36,6 +36,29 @@ class WebBoardTest extends TestCase
             ->assertSee('Progress task');
     }
 
+    public function test_empty_board_directs_to_task_baru_not_api_endpoint(): void
+    {
+        $user = $this->actingUser();
+
+        $this->actingAs($user)
+            ->get('/')
+            ->assertOk()
+            ->assertSee('Task baru')
+            ->assertDontSee('POST /api/tasks');
+    }
+
+    public function test_task_card_includes_status_saving_indicator(): void
+    {
+        $user = $this->actingUser();
+        Task::create(['code' => 'CLK-99', 'title' => 'Kartu', 'status' => 'todo', 'priority' => 'normal']);
+
+        $this->actingAs($user)
+            ->get('/')
+            ->assertOk()
+            ->assertSee('taskCardStatus()', false)
+            ->assertSee('Menyimpan...');
+    }
+
     public function test_session_filter_shows_only_assignee_tasks_on_board(): void
     {
         $user = $this->actingUser();

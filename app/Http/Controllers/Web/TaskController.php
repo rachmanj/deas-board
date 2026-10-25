@@ -13,6 +13,7 @@ use App\Models\TaskComment;
 use App\Models\TaskUpdate;
 use App\Support\ActivityLogger;
 use App\Support\Actor;
+use App\Support\CommentFormNonce;
 use App\Support\TaskRules;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -72,6 +73,11 @@ class TaskController extends Controller
 
         $topLevelComments = $allComments->whereNull('parent_id')->values();
 
+        $activeTab = request()->query('tab', 'diskusi');
+        if (! in_array($activeTab, ['diskusi', 'status', 'perubahan'], true)) {
+            $activeTab = 'diskusi';
+        }
+
         return view('tasks.show', [
             'task' => $task,
             'statusLabels' => $statusLabels,
@@ -80,6 +86,8 @@ class TaskController extends Controller
             'activityLogs' => $activityLogs,
             'topLevelComments' => $topLevelComments,
             'allComments' => $allComments,
+            'activeTab' => $activeTab,
+            'commentFormNonce' => CommentFormNonce::issue(),
             'pageTitle' => $task->code.' · '.$task->title,
         ]);
     }

@@ -50,13 +50,15 @@
                 </form>
             </div>
             <form id="edit-comment-{{ $comment->id }}" method="POST" action="{{ route('tasks.comments.update', [$task, $comment]) }}"
-                  class="mt-2 hidden space-y-2">
+                  class="mt-2 hidden space-y-2" x-data="submitForm()" @submit="onFormSubmit">
                 @csrf
                 @method('PATCH')
                 <textarea name="body_md" rows="3" required
                           class="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40">{{ $comment->body_md }}</textarea>
-                <button type="submit"
-                        class="min-h-11 rounded-lg bg-teal-500 px-3 text-xs font-medium text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                <button type="submit" :disabled="processing"
+                        class="min-h-11 rounded-lg bg-teal-500 px-3 text-xs font-medium text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
+                        data-submit-label="Simpan"
+                        x-text="buttonText()">
                     Simpan
                 </button>
             </form>
@@ -69,11 +71,13 @@
                 </button>
             </div>
             <form id="reply-comment-{{ $comment->id }}" method="POST" action="{{ route('tasks.comments.reply', [$task, $comment]) }}"
-                  class="mt-2 hidden space-y-2">
+                  class="mt-2 hidden space-y-2" x-data="submitForm('Mengirim...')" @submit="onFormSubmit">
                 @csrf
                 @include('partials.mention-textarea', ['name' => 'body_md', 'id' => 'reply-body-'.$comment->id, 'rows' => 3, 'placeholder' => 'Tulis balasan…', 'required' => true])
-                <button type="submit"
-                        class="min-h-11 rounded-lg bg-teal-500 px-3 text-xs font-medium text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                <button type="submit" :disabled="processing"
+                        class="min-h-11 rounded-lg bg-teal-500 px-3 text-xs font-medium text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
+                        data-submit-label="Kirim balasan"
+                        x-text="buttonText()">
                     Kirim balasan
                 </button>
             </form>

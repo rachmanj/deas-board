@@ -3,7 +3,8 @@
     $selectedLabels = $isEdit ? $task->labels->pluck('id')->all() : [];
 @endphp
 
-<form method="POST" action="{{ $isEdit ? route('tasks.update', $task) : route('tasks.store') }}" class="space-y-4">
+<form method="POST" action="{{ $isEdit ? route('tasks.update', $task) : route('tasks.store') }}" class="space-y-4"
+      x-data="submitForm()" @submit="onFormSubmit">
     @csrf
     @if($isEdit)
         @method('PATCH')
@@ -118,8 +119,10 @@
     </div>
 
     <div class="flex flex-wrap gap-2">
-        <button type="submit"
-                class="min-h-11 rounded-lg bg-teal-500 px-4 text-sm font-medium text-zinc-950 hover:bg-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+        <button type="submit" :disabled="processing"
+                class="min-h-11 rounded-lg bg-teal-500 px-4 text-sm font-medium text-zinc-950 hover:bg-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
+                data-submit-label="{{ $isEdit ? 'Simpan perubahan' : 'Buat task' }}"
+                x-text="buttonText()">
             {{ $isEdit ? 'Simpan perubahan' : 'Buat task' }}
         </button>
         @if($isEdit)

@@ -1,6 +1,36 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
 
+window.submitForm = function (processingText = 'Memproses...') {
+    return {
+        processing: false,
+        processingText,
+        defaultText: '',
+        init() {
+            const btn = this.$el.querySelector('button[type="submit"]');
+            if (btn) {
+                this.defaultText = btn.dataset.submitLabel || btn.textContent.trim();
+            }
+        },
+        onFormSubmit() {
+            this.processing = true;
+        },
+        buttonText() {
+            return this.processing ? this.processingText : this.defaultText;
+        },
+    };
+};
+
+window.taskCardStatus = function () {
+    return {
+        saving: false,
+        onStatusChange(event) {
+            this.saving = true;
+            event.target.form.submit();
+        },
+    };
+};
+
 window.taskLabelPicker = function (initialSelected, labelsUrl) {
     return {
         labels: [],

@@ -4,7 +4,8 @@
     <div class="space-y-6">
         <section class="rounded-xl border border-zinc-800 bg-zinc-900 p-4 sm:p-6">
             <h2 class="text-base font-semibold text-zinc-100">Tambah sesi</h2>
-            <form method="POST" action="{{ route('sessions.store') }}" class="mt-4 grid gap-4 sm:grid-cols-2">
+            <form method="POST" action="{{ route('sessions.store') }}" class="mt-4 grid gap-4 sm:grid-cols-2"
+                  x-data="submitForm()" @submit="onFormSubmit">
                 @csrf
                 <div>
                     <label for="label" class="mb-1 block text-sm text-zinc-400">Label</label>
@@ -34,8 +35,10 @@
                               class="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40">{{ old('notes') }}</textarea>
                 </div>
                 <div class="sm:col-span-2">
-                    <button type="submit"
-                            class="min-h-11 rounded-lg bg-teal-500 px-4 text-sm font-medium text-zinc-950 hover:bg-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                    <button type="submit" :disabled="processing"
+                            class="min-h-11 rounded-lg bg-teal-500 px-4 text-sm font-medium text-zinc-950 hover:bg-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
+                            data-submit-label="Simpan sesi"
+                            x-text="buttonText()">
                         Simpan sesi
                     </button>
                 </div>
@@ -94,10 +97,13 @@
                                                 </button>
                                             </form>
                                         @endif
-                                        <form method="POST" action="{{ route('sessions.tokens.issue', $session) }}">
+                                        <form method="POST" action="{{ route('sessions.tokens.issue', $session) }}"
+                                              x-data="submitForm()" @submit="onFormSubmit">
                                             @csrf
-                                            <button type="submit"
-                                                    class="min-h-9 rounded-lg bg-teal-500/15 px-2 text-xs font-medium text-teal-500 hover:bg-teal-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                                            <button type="submit" :disabled="processing"
+                                                    class="min-h-9 rounded-lg bg-teal-500/15 px-2 text-xs font-medium text-teal-500 hover:bg-teal-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
+                                                    data-submit-label="Terbitkan token"
+                                                    x-text="buttonText()">
                                                 Terbitkan token
                                             </button>
                                         </form>
