@@ -35,7 +35,7 @@ class WebLoginTest extends TestCase
     {
         $this->get('/login')
             ->assertOk()
-            ->assertSee('Masuk ke Deas Board')
+            ->assertSee('Masuk ke '.config('app.name'))
             ->assertSee('Email', false);
     }
 }

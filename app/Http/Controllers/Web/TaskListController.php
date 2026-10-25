@@ -19,17 +19,8 @@ class TaskListController extends Controller
         $totalTasks = Task::query()->count();
         $hasActiveFilters = $request->hasAny(['assignee', 'project', 'priority', 'overdue', 'q', 'status']);
 
-        $detailTask = null;
-        if ($request->filled('detail')) {
-            $detailTask = Task::query()
-                ->with(['assigneeSession', 'project'])
-                ->withCount('comments')
-                ->find($request->integer('detail'));
-        }
-
         return view('tasks.index', [
             'tasks' => $tasks,
-            'detailTask' => $detailTask,
             'statusLabels' => $this->statusLabels(),
             'priorityLabels' => $this->priorityLabels(),
             'totalTasks' => $totalTasks,

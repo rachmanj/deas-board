@@ -30,15 +30,6 @@
         'clearFiltersUrl' => route('tasks.index'),
     ])
 
-    @if($detailTask)
-        <div class="mb-4 rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-sm">
-            <h2 class="mb-2 text-base font-semibold text-zinc-100">Detail task</h2>
-            <p class="font-mono text-xs text-zinc-500">{{ $detailTask->code }}</p>
-            <p class="mt-1 text-zinc-100">{{ $detailTask->title }}</p>
-            <p class="mt-2 text-zinc-400">{{ $statusLabels[$detailTask->status] ?? $detailTask->status }} · {{ $priorityLabels[$detailTask->priority] ?? $detailTask->priority }}</p>
-        </div>
-    @endif
-
     @if($totalTasks > 0 && $visibleCount > 0)
         <div class="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900">
             <table class="w-full min-w-[48rem] text-left text-sm">
@@ -68,8 +59,8 @@
                         @endphp
                         <tr class="cursor-pointer hover:bg-zinc-950/80 focus-within:bg-zinc-950/80 focus-within:ring-2 focus-within:ring-inset focus-within:ring-teal-500"
                             tabindex="0" role="link"
-                            onclick="window.location='{{ route('tasks.index', array_merge(request()->query(), ['detail' => $task->id])) }}'"
-                            onkeydown="if (event.key === 'Enter') { window.location='{{ route('tasks.index', array_merge(request()->query(), ['detail' => $task->id])) }}'; }">
+                            onclick="window.location='{{ route('tasks.show', $task) }}'"
+                            onkeydown="if (event.key === 'Enter') { window.location='{{ route('tasks.show', $task) }}'; }">
                             <td class="px-3 py-2 font-mono text-xs text-zinc-500">{{ $task->code }}</td>
                             <td class="px-3 py-2 text-zinc-100">{{ $task->title }}</td>
                             <td class="px-3 py-2 text-zinc-400">{{ $statusLabels[$task->status] ?? $task->status }}</td>

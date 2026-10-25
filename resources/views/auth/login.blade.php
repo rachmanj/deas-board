@@ -8,7 +8,7 @@
 </head>
 <body class="flex min-h-screen items-center justify-center bg-zinc-950 px-4 text-zinc-100">
     <div class="w-full max-w-sm rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-        <h1 class="mb-6 text-center text-lg font-semibold">Masuk ke Deas Board</h1>
+        <h1 class="mb-6 text-center text-lg font-semibold">Masuk ke {{ config('app.name') }}</h1>
 
         @if($errors->any())
             <div class="mb-4 rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-2 text-sm text-red-300" role="alert">

@@ -8,7 +8,11 @@
 @endphp
 <article class="rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-sm">
     <div class="mb-1 font-mono text-xs text-zinc-500">{{ $task->code }}</div>
-    <h3 class="mb-2 font-medium text-zinc-100">{{ $task->title }}</h3>
+    <h3 class="mb-2 font-medium text-zinc-100">
+        <a href="{{ route('tasks.show', $task) }}" class="hover:text-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+            {{ $task->title }}
+        </a>
+    </h3>
     <dl class="mb-3 space-y-1 text-xs text-zinc-400">
         <div class="flex justify-between gap-2">
             <dt>Penanggung</dt>
