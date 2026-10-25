@@ -3,7 +3,9 @@
 use App\Http\Controllers\Web\Auth\LoginController;
 use App\Http\Controllers\Web\BoardController;
 use App\Http\Controllers\Web\CommentController;
+use App\Http\Controllers\Web\LabelController;
 use App\Http\Controllers\Web\MentionController;
+use App\Http\Controllers\Web\SessionController;
 use App\Http\Controllers\Web\TaskController;
 use App\Http\Controllers\Web\TaskListController;
 use App\Http\Controllers\Web\TaskStatusController;
@@ -32,5 +34,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/tasks/{task}/comments/{comment}', [CommentController::class, 'update'])->name('tasks.comments.update');
     Route::delete('/tasks/{task}/comments/{comment}', [CommentController::class, 'destroy'])->name('tasks.comments.destroy');
     Route::get('/mentions.json', [MentionController::class, 'index'])->name('mentions.json');
-    Route::get('/sessions', fn () => redirect()->route('board')->with('info', 'Daftar sesi menyusul.'))->name('sessions');
+    Route::get('/labels.json', [LabelController::class, 'index'])->name('labels.json');
+    Route::get('/sessions', [SessionController::class, 'index'])->name('sessions');
+    Route::post('/sessions', [SessionController::class, 'store'])->name('sessions.store');
+    Route::patch('/sessions/{session}/activate', [SessionController::class, 'activate'])->name('sessions.activate');
+    Route::patch('/sessions/{session}/deactivate', [SessionController::class, 'deactivate'])->name('sessions.deactivate');
+    Route::post('/sessions/{session}/tokens', [SessionController::class, 'issueToken'])->name('sessions.tokens.issue');
+    Route::delete('/sessions/{session}/tokens/{token}', [SessionController::class, 'revokeToken'])->name('sessions.tokens.revoke');
 });

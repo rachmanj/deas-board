@@ -1,0 +1,45 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: board-app:latest
+    container_name: board-app
+    restart: unless-stopped
+    ports:
+      - "3010:80"
+    volumes:
+      - ./env:/var/www/.env:ro
+      - board_storage:/var/www/storage
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - board
+
+  mysql:
+    image: mysql:8.0
+    container_name: board-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: __ROOT_PW__
+      MYSQL_DATABASE: board
+      MYSQL_USER: board
+      MYSQL_PASSWORD: __DB_PW__
+    volumes:
+      - board_mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    networks:
+      - board
+
+volumes:
+  board_storage:
+  board_mysql:
+
+networks:
+  board:
+    driver: bridge

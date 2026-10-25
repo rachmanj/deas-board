@@ -88,19 +88,33 @@
                class="min-h-11 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40">
     </div>
 
-    <div>
+    <div x-data="taskLabelPicker(@js(old('label_ids', $selectedLabels)), @js(route('labels.json')))" x-init="load()">
         <span class="mb-2 block text-sm text-zinc-400">Label</span>
-        <div class="flex flex-wrap gap-2">
-            @forelse($labels as $label)
-                <label class="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-zinc-800 px-3 text-sm has-[:checked]:border-teal-500/50 has-[:checked]:bg-teal-500/10">
-                    <input type="checkbox" name="label_ids[]" value="{{ $label->id }}"
-                           @checked(in_array($label->id, old('label_ids', $selectedLabels)))>
-                    <span>{{ $label->name }}</span>
+        <div class="flex flex-wrap gap-2" x-show="labels.length" x-cloak>
+            <template x-for="label in labels" :key="label.id">
+                <label class="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-zinc-800 px-3 text-sm has-[:checked]:border-teal-500/50 has-[:checked]:bg-teal-500/10"
+                       :class="isSelected(label.id) ? 'border-teal-500/50 bg-teal-500/10' : ''">
+                    <input type="checkbox" name="label_ids[]" :value="label.id"
+                           :checked="isSelected(label.id)"
+                           @change="toggle(label.id)">
+                    <span x-text="label.name"></span>
                 </label>
-            @empty
-                <p class="text-sm text-zinc-500">Belum ada label.</p>
-            @endforelse
+            </template>
         </div>
+        <p class="text-sm text-zinc-500" x-show="!loading && labels.length === 0">Belum ada label.</p>
+        <noscript>
+            <div class="flex flex-wrap gap-2">
+                @forelse($labels as $label)
+                    <label class="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-zinc-800 px-3 text-sm has-[:checked]:border-teal-500/50 has-[:checked]:bg-teal-500/10">
+                        <input type="checkbox" name="label_ids[]" value="{{ $label->id }}"
+                               @checked(in_array($label->id, old('label_ids', $selectedLabels)))>
+                        <span>{{ $label->name }}</span>
+                    </label>
+                @empty
+                    <p class="text-sm text-zinc-500">Belum ada label.</p>
+                @endforelse
+            </div>
+        </noscript>
     </div>
 
     <div class="flex flex-wrap gap-2">

@@ -21,7 +21,7 @@
                     Daftar
                 </a>
                 <a href="{{ route('sessions') }}"
-                   class="min-h-11 rounded-lg px-3 py-2 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                   class="min-h-11 rounded-lg px-3 py-2 text-sm {{ request()->routeIs('sessions*') ? 'bg-teal-500/15 text-teal-500' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100' }} focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
                     Sesi
                 </a>
             </nav>
