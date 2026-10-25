@@ -21,36 +21,40 @@ class ClickImportSessionsCommandTest extends TestCase
             '--chat-id' => 'chat-fixture',
         ])->assertSuccessful();
 
-        $session = Session::query()->where('topic_id', '35147')->first();
+        $session = Session::query()->where('topic_id', '2')->first();
         $this->assertNotNull($session);
-        $this->assertSame('Arka Click', $session->label);
+        $this->assertSame('POS-ATK', $session->label);
         $this->assertStringContainsString('penulis', (string) $session->notes);
         $this->assertDatabaseHas('sessions', [
-            'topic_id' => '35147',
-            'label' => 'Arka Click',
+            'topic_id' => '2',
+            'label' => 'POS-ATK',
             'chat_id' => 'chat-fixture',
             'is_active' => true,
         ]);
         $this->assertDatabaseHas('sessions', [
-            'topic_id' => '42099',
-            'label' => 'Beta Node',
+            'topic_id' => '29724',
+            'label' => 'AccountingOne',
+        ]);
+        $this->assertDatabaseHas('sessions', [
+            'topic_id' => '12488',
+            'label' => 'ARK-GS',
         ]);
         $this->assertNotNull(ActivityLog::query()->where('action', 'session.imported')->first());
-        $this->assertSame(2, Session::count());
+        $this->assertSame(3, Session::count());
 
         $this->artisan('click:import-sessions', [
             '--from' => $path,
             '--apply' => true,
         ])->assertSuccessful();
 
-        $this->assertSame(2, Session::count());
+        $this->assertSame(3, Session::count());
     }
 
     public function test_does_not_deactivate_existing_session(): void
     {
         Session::create([
             'label' => 'Lama',
-            'topic_id' => '35147',
+            'topic_id' => '2',
             'is_active' => true,
         ]);
 
@@ -62,7 +66,7 @@ class ClickImportSessionsCommandTest extends TestCase
         ])->assertSuccessful();
 
         $this->assertDatabaseHas('sessions', [
-            'topic_id' => '35147',
+            'topic_id' => '2',
             'label' => 'Lama',
             'is_active' => true,
         ]);
@@ -77,7 +81,7 @@ class ClickImportSessionsCommandTest extends TestCase
             '--dry-run' => true,
         ])
             ->assertSuccessful()
-            ->expectsOutputToContain('Sesi baru: 2');
+            ->expectsOutputToContain('Sesi baru: 3');
 
         $this->assertSame(0, Session::count());
     }
@@ -93,7 +97,7 @@ class ClickImportSessionsCommandTest extends TestCase
             '--dry-run' => true,
         ])
             ->assertSuccessful()
-            ->expectsOutputToContain('Sesi baru: 3');
+            ->expectsOutputToContain('Sesi baru: 4');
 
         $this->artisan('click:import-sessions', [
             '--from' => $path,
@@ -101,7 +105,7 @@ class ClickImportSessionsCommandTest extends TestCase
             '--apply' => true,
         ])->assertSuccessful();
 
-        $this->assertSame(3, Session::count());
+        $this->assertSame(4, Session::count());
         $this->assertDatabaseHas('sessions', [
             'topic_id' => '99901',
             'label' => 'Sesi Catatan Saja',

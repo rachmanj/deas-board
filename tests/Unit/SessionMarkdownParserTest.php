@@ -14,13 +14,16 @@ class SessionMarkdownParserTest extends TestCase
 
         $rows = $parser->parse($markdown);
 
-        $this->assertCount(2, $rows);
-        $this->assertSame('35147', $rows[0]['topic_id']);
-        $this->assertSame('Arka Click', $rows[0]['label']);
+        $this->assertCount(3, $rows);
+        $this->assertSame('2', $rows[0]['topic_id']);
+        $this->assertSame('POS-ATK', $rows[0]['label']);
         $this->assertStringContainsString('penulis', $rows[0]['notes']);
         $this->assertStringContainsString('Catatan panjang untuk sesi pertama.', $rows[0]['notes']);
-        $this->assertSame('42099', $rows[1]['topic_id']);
-        $this->assertSame('Beta Node', $rows[1]['label']);
+        $this->assertSame('29724', $rows[1]['topic_id']);
+        $this->assertSame('AccountingOne', $rows[1]['label']);
         $this->assertStringContainsString('verifikator', $rows[1]['notes']);
+        $this->assertSame('12488', $rows[2]['topic_id']);
+        $this->assertSame('ARK-GS', $rows[2]['label']);
+        $this->assertStringContainsString('penulis', $rows[2]['notes']);
     }
 }

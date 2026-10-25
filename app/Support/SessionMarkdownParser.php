@@ -28,9 +28,9 @@ class SessionMarkdownParser
             }
 
             $topicId = $topicMatch[1];
-            $appCell = $cells[1] ?? '';
-            $roleCell = trim($cells[2] ?? '');
-            $detailCell = trim($cells[3] ?? '');
+            $appCell = $cells[0] ?? '';
+            $roleCell = trim($cells[1] ?? '');
+            $detailCell = trim($cells[2] ?? '');
 
             $label = $this->cleanLabel($appCell);
             if ($label === '') {
@@ -68,6 +68,7 @@ class SessionMarkdownParser
 
     private function cleanLabel(string $label): string
     {
+        $label = preg_replace('/\*\*\d+\*\*/', '', $label) ?? $label;
         $label = preg_replace('/\([^)]*\)/', '', $label) ?? $label;
         $label = str_replace('*', '', $label);
 
