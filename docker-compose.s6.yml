@@ -27,11 +27,12 @@ services:
     image: mysql:8.0
     container_name: board-mysql
     restart: unless-stopped
+    # Rahasia TIDAK disimpan di berkas ini; isi lewat env.compose dan jalankan lewat ./dc
     environment:
-      MYSQL_ROOT_PASSWORD: __ROOT_PW__
-      MYSQL_DATABASE: board
-      MYSQL_USER: board
-      MYSQL_PASSWORD: __DB_PW__
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD belum diisi}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-board}
+      MYSQL_USER: ${MYSQL_USER:-board}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?MYSQL_PASSWORD belum diisi}
     volumes:
       - board_mysql:/var/lib/mysql
     healthcheck:

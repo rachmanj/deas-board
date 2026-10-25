@@ -7,12 +7,18 @@ if [ ! -d vendor ]; then
   composer install --no-dev --optimize-autoloader
 fi
 
+if git rev-parse HEAD >/dev/null 2>&1; then
+  git rev-parse HEAD > GIT_COMMIT
+else
+  echo "tidak-diketahui" > GIT_COMMIT
+fi
+
 # Bangun image dan jalankan stack
-docker compose -f docker-compose.s6.yml build
-docker compose -f docker-compose.s6.yml up -d
+./dc build
+./dc up -d
 
 # Terapkan migrasi basis data
-docker compose -f docker-compose.s6.yml exec -T app php artisan migrate --force
+./dc exec -T app php artisan migrate --force
 
 # Muat ulang konfigurasi reverse proxy
 docker exec web-proxy nginx -s reload

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")"
+
+if [ ! -f env.compose ]; then
+  echo "Galat: env.compose tidak ditemukan. Salin env.compose.contoh ke env.compose lalu isi sandi MySQL." >&2
+  exit 1
+fi
+
+exec docker compose -f docker-compose.s6.yml --env-file env.compose "$@"
