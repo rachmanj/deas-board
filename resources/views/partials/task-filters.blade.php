@@ -5,7 +5,7 @@
                 class="min-h-11 rounded-lg border border-zinc-800 bg-zinc-950 px-3 text-sm text-zinc-100 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40">
             <option value="">Semua sesi</option>
             @foreach($filters['sessions'] as $session)
-                <option value="{{ $session->id }}" @selected(request('assignee') == $session->id)>{{ $session->label }}</option>
+                <option value="{{ $session->id }}" @selected(request('assignee') == $session->id)>{{ $session->label }} ({{ $session->topic_id }})</option>
             @endforeach
         </select>
     </div>

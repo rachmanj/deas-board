@@ -65,7 +65,13 @@
                             <td class="px-3 py-2 text-zinc-100">{{ $task->title }}</td>
                             <td class="px-3 py-2 text-zinc-400">{{ $statusLabels[$task->status] ?? $task->status }}</td>
                             <td class="px-3 py-2 {{ $priorityClass }}">{{ $priorityLabels[$task->priority] ?? $task->priority }}</td>
-                            <td class="px-3 py-2 text-zinc-400">{{ $task->assigneeSession?->label ?? 'Belum ada' }}</td>
+                            <td class="px-3 py-2 text-zinc-400">
+                                @if($task->assigneeSession)
+                                    {{ $task->assigneeSession->label }} <span class="text-zinc-400">({{ $task->assigneeSession->topic_id }})</span>
+                                @else
+                                    Belum ada
+                                @endif
+                            </td>
                             <td class="px-3 py-2 text-zinc-400">{{ $task->project?->name ?? 'Tidak ada' }}</td>
                             <td class="px-3 py-2 text-zinc-400">{{ $task->due_date?->format('d M Y') ?? 'Tidak ada' }}</td>
                             <td class="px-3 py-2 text-zinc-400">{{ $ageDays }}</td>

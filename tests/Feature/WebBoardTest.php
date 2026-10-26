@@ -59,6 +59,38 @@ class WebBoardTest extends TestCase
             ->assertSee('Menyimpan...');
     }
 
+    public function test_task_card_shows_assignee_session_label_and_topic_id(): void
+    {
+        $user = $this->actingUser();
+        $session = Session::create(['label' => 'LAP-KEU', 'topic_id' => '34926', 'is_active' => true]);
+
+        Task::create([
+            'code' => 'CLK-50',
+            'title' => 'Kartu sesi',
+            'status' => 'todo',
+            'priority' => 'normal',
+            'assignee_session_id' => $session->id,
+        ]);
+
+        $this->actingAs($user)
+            ->get('/')
+            ->assertOk()
+            ->assertSee('LAP-KEU', false)
+            ->assertSee('(34926)', false)
+            ->assertSee('text-zinc-400">(34926)', false);
+    }
+
+    public function test_board_session_filter_option_includes_topic_id(): void
+    {
+        $user = $this->actingUser();
+        Session::create(['label' => 'FilterSesi', 'topic_id' => '77701', 'is_active' => true]);
+
+        $this->actingAs($user)
+            ->get('/')
+            ->assertOk()
+            ->assertSee('FilterSesi (77701)', false);
+    }
+
     public function test_session_filter_shows_only_assignee_tasks_on_board(): void
     {
         $user = $this->actingUser();

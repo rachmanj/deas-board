@@ -15,8 +15,14 @@
     </h3>
     <dl class="mb-3 space-y-1 text-xs text-zinc-400">
         <div class="flex justify-between gap-2">
-            <dt>Penanggung</dt>
-            <dd class="text-right text-zinc-300">{{ $task->assigneeSession?->label ?? 'Belum ada' }}</dd>
+            <dt class="shrink-0">Penanggung</dt>
+            <dd class="min-w-0 break-words text-right text-zinc-300">
+                @if($task->assigneeSession)
+                    {{ $task->assigneeSession->label }} <span class="text-zinc-400">({{ $task->assigneeSession->topic_id }})</span>
+                @else
+                    Belum ada
+                @endif
+            </dd>
         </div>
         <div class="flex justify-between gap-2">
             <dt>Tenggat</dt>

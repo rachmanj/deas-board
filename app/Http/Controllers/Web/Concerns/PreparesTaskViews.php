@@ -11,7 +11,7 @@ trait PreparesTaskViews
     protected function filterOptions(): array
     {
         return [
-            'sessions' => Session::query()->where('is_active', true)->orderBy('label')->get(['id', 'label']),
+            'sessions' => Session::query()->where('is_active', true)->orderBy('label')->get(['id', 'label', 'topic_id']),
             'projects' => Project::query()->where('is_active', true)->orderBy('name')->get(['id', 'slug', 'name']),
             'priorities' => TaskRules::PRIORITIES,
         ];
