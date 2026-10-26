@@ -21,6 +21,7 @@
                     Salin
                 </button>
             </div>
+            <span id="copy-status" class="text-xs" role="status" aria-live="polite"></span>
         </div>
 
         <a href="{{ route('sessions') }}"
@@ -32,15 +33,87 @@
 
 @push('scripts')
     <script>
-        document.getElementById('copy-token')?.addEventListener('click', function () {
+        (function () {
             const input = document.getElementById('issued-token');
-            if (!input) return;
-            input.select();
-            input.setSelectionRange(0, input.value.length);
-            navigator.clipboard?.writeText(input.value).catch(function () {
-                document.execCommand('copy');
+            const copyBtn = document.getElementById('copy-token');
+            const statusEl = document.getElementById('copy-status');
+            const defaultLabel = 'Salin';
+
+            function selectTokenInput() {
+                if (!input) {
+                    return;
+                }
+                input.select();
+                input.setSelectionRange(0, input.value.length);
+            }
+
+            function copyWithLegacy(text) {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.top = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+                textarea.setSelectionRange(0, textarea.value.length);
+                const ok = document.execCommand('copy');
+                document.body.removeChild(textarea);
+                input.focus();
+                return ok;
+            }
+
+            async function copyToken(text) {
+                if (window.isSecureContext && typeof navigator.clipboard?.writeText === 'function') {
+                    try {
+                        await navigator.clipboard.writeText(text);
+                        return true;
+                    } catch (e) {
+                        return copyWithLegacy(text);
+                    }
+                }
+
+                return copyWithLegacy(text);
+            }
+
+            function resetCopyFeedback() {
+                if (copyBtn) {
+                    copyBtn.textContent = defaultLabel;
+                }
+                if (statusEl) {
+                    statusEl.textContent = '';
+                }
+            }
+
+            function showCopyFeedback(success) {
+                if (!copyBtn) {
+                    return;
+                }
+                if (success) {
+                    copyBtn.textContent = 'Tersalin';
+                    if (statusEl) {
+                        statusEl.textContent = 'Token tersalin.';
+                    }
+                } else {
+                    copyBtn.textContent = 'Gagal, salin manual';
+                    if (statusEl) {
+                        statusEl.textContent = 'Tidak bisa menyalin otomatis, tekan Ctrl+C setelah token terseleksi.';
+                    }
+                    selectTokenInput();
+                }
+                window.setTimeout(resetCopyFeedback, 3000);
+            }
+
+            input?.addEventListener('click', selectTokenInput);
+            input?.addEventListener('focus', selectTokenInput);
+
+            copyBtn?.addEventListener('click', function () {
+                if (!input) {
+                    return;
+                }
+                const text = input.value;
+                copyToken(text).then(function (success) {
+                    showCopyFeedback(success);
+                });
             });
-            this.textContent = 'Tersalin';
-        });
+        })();
     </script>
 @endpush

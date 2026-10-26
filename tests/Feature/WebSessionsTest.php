@@ -76,6 +76,12 @@ class WebSessionsTest extends TestCase
         $index = $this->actingAs($user)->get('/sessions');
         $index->assertOk()
             ->assertDontSee($plainTextToken);
+
+        $this->assertStringContainsString('execCommand', $content);
+        $this->assertStringContainsString('isSecureContext', $content);
+        $this->assertStringNotContainsString('navigator.clipboard?.writeText(input.value)', $content);
+        $issue->assertSee('id="copy-status"', false)
+            ->assertSee('aria-live="polite"', false);
     }
 
     public function test_revoke_token_deletes_row(): void
