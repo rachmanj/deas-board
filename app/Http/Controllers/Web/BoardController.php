@@ -15,13 +15,7 @@ class BoardController extends Controller
 
     public function index(Request $request)
     {
-        $tasks = TaskFilterQuery::fromRequest($request)->get();
-
-        $columns = [];
-        foreach (TaskRules::STATUSES as $status) {
-            $columns[$status] = $tasks->where('status', $status)->values();
-        }
-
+        $columns = $this->columnsForRequest($request);
         $totalTasks = Task::query()->count();
         $hasActiveFilters = TaskFilterQuery::hasActiveFilters($request);
 
@@ -34,5 +28,45 @@ class BoardController extends Controller
             'filters' => $this->filterOptions(),
             'pageTitle' => 'Papan',
         ]);
+    }
+
+    public function fragment(Request $request)
+    {
+        $columns = $this->columnsForRequest($request);
+        $totalTasks = Task::query()->count();
+        $visibleCount = collect($columns)->flatten(1)->count();
+
+        $html = '';
+        if ($totalTasks > 0 && $visibleCount > 0) {
+            $html = view('partials.board-columns', [
+                'columns' => $columns,
+                'statusLabels' => $this->statusLabels(),
+                'priorityLabels' => $this->priorityLabels(),
+            ])->render();
+        }
+
+        $etag = '"'.hash('sha256', $html).'"';
+
+        if ($request->header('If-None-Match') === $etag) {
+            return response('', 304)
+                ->header('ETag', $etag)
+                ->header('Cache-Control', 'no-store');
+        }
+
+        return response($html, 200)
+            ->header('ETag', $etag)
+            ->header('Cache-Control', 'no-store');
+    }
+
+    private function columnsForRequest(Request $request): array
+    {
+        $tasks = TaskFilterQuery::fromRequest($request)->get();
+
+        $columns = [];
+        foreach (TaskRules::STATUSES as $status) {
+            $columns[$status] = $tasks->where('status', $status)->values();
+        }
+
+        return $columns;
     }
 }

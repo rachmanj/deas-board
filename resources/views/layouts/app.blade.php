@@ -31,6 +31,7 @@
             <header class="sticky top-0 z-30 flex flex-wrap items-center gap-3 border-b border-zinc-800 bg-zinc-900/95 px-4 py-3 backdrop-blur">
                 <div class="min-w-0 flex-1">
                     <h1 class="truncate text-lg font-semibold text-zinc-100">{{ $pageTitle ?? config('app.name') }}</h1>
+                    @stack('page-title-meta')
                 </div>
                 <a href="{{ route('tasks.create') }}"
                    aria-label="Task baru"
