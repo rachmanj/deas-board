@@ -16,7 +16,7 @@
     >@if(!empty($value)){{ $value }}@endif</textarea>
 
     <ul x-show="open && suggestions.length" x-cloak
-        class="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-lg border border-zinc-700 bg-zinc-900 py-1 text-sm shadow-lg"
+        class="absolute z-40 mt-1 max-h-48 w-full overflow-auto rounded-lg border border-zinc-700 bg-zinc-900 py-1 text-sm shadow-lg"
         role="listbox">
         <template x-for="(item, index) in suggestions" :key="item.type + '-' + item.id">
             <li>

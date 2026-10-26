@@ -28,13 +28,20 @@
         </aside>
 
         <div class="flex min-w-0 flex-1 flex-col">
-            <header class="flex flex-wrap items-center gap-3 border-b border-zinc-800 bg-zinc-900 px-4 py-3">
-                <h1 class="text-lg font-semibold text-zinc-100">{{ $pageTitle ?? config('app.name') }}</h1>
+            <header class="sticky top-0 z-30 flex flex-wrap items-center gap-3 border-b border-zinc-800 bg-zinc-900/95 px-4 py-3 backdrop-blur">
+                <div class="min-w-0 flex-1">
+                    <h1 class="truncate text-lg font-semibold text-zinc-100">{{ $pageTitle ?? config('app.name') }}</h1>
+                </div>
                 <a href="{{ route('tasks.create') }}"
-                   class="min-h-11 rounded-lg bg-teal-500 px-3 text-sm font-medium text-zinc-950 hover:bg-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
-                    Task baru
+                   aria-label="Task baru"
+                   class="inline-flex shrink-0 items-center justify-center gap-2 min-h-11 rounded-lg bg-teal-500 px-4 text-sm font-semibold text-zinc-950 transition-colors hover:bg-teal-400 active:bg-teal-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900">
+                    <svg class="h-4 w-4 shrink-0" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                        <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span class="sm:hidden">Baru</span>
+                    <span class="hidden sm:inline">Task baru</span>
                 </a>
-                <form method="GET" action="{{ request()->url() }}" class="ml-auto flex min-w-0 flex-1 basis-full sm:basis-auto sm:max-w-xs">
+                <form method="GET" action="{{ request()->url() }}" class="order-last flex min-w-0 flex-1 basis-full sm:order-none sm:ml-auto sm:max-w-xs sm:basis-auto sm:flex-initial">
                     @foreach(request()->except('q', 'page') as $key => $value)
                         @if(is_array($value))
                             @foreach($value as $v)
@@ -49,16 +56,16 @@
                            placeholder="Cari task"
                            class="min-h-11 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 text-sm text-zinc-100 placeholder:text-zinc-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40">
                 </form>
-                <div class="flex items-center gap-2 text-sm text-zinc-400">
-                    <span>{{ auth()->user()->name }}</span>
+                <div class="flex shrink-0 items-center gap-2 text-sm">
+                    <span class="hidden text-zinc-400 sm:inline">{{ auth()->user()->name }}</span>
                     <a href="{{ route('profile') }}"
-                       class="min-h-11 rounded-lg border border-zinc-800 px-3 leading-[2.75rem] text-zinc-400 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                       class="inline-flex items-center justify-center min-h-11 rounded-lg border border-zinc-800 px-3 text-sm text-zinc-300 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400">
                         Profil
                     </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit"
-                                class="min-h-11 rounded-lg border border-zinc-800 px-3 text-zinc-400 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                                class="inline-flex items-center justify-center min-h-11 rounded-lg border border-zinc-800 px-3 text-sm text-zinc-300 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400">
                             Keluar
                         </button>
                     </form>
