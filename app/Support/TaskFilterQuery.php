@@ -8,16 +8,65 @@ use Illuminate\Http\Request;
 
 class TaskFilterQuery
 {
+    private const FILTER_KEYS = [
+        'status',
+        'priority',
+        'assignee',
+        'project',
+        'q',
+        'session_id',
+        'overdue',
+    ];
+
+    public static function hasActiveFilters(Request $request): bool
+    {
+        foreach (self::FILTER_KEYS as $key) {
+            if ($request->filled($key)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static function normalizeRequestFilters(Request $request): void
+    {
+        $query = $request->query->all();
+
+        foreach (self::FILTER_KEYS as $key) {
+            if (! array_key_exists($key, $query)) {
+                continue;
+            }
+
+            $value = $query[$key];
+
+            if (is_array($value)) {
+                $scalars = array_values(array_filter($value, fn ($v) => is_scalar($v)));
+                $value = $scalars !== [] ? $scalars[array_key_last($scalars)] : '';
+            }
+
+            if ($value === '' || $value === null) {
+                unset($query[$key]);
+            } else {
+                $query[$key] = $value;
+            }
+        }
+
+        $request->query->replace($query);
+    }
+
     public static function fromRequest(Request $request): Builder
     {
+        self::normalizeRequestFilters($request);
+
         $request->validate([
-            'status' => ['sometimes', TaskRules::statusRule()],
-            'priority' => ['sometimes', TaskRules::priorityRule()],
-            'assignee' => ['sometimes', 'integer', 'exists:sessions,id'],
-            'project' => ['sometimes'],
-            'q' => ['sometimes', 'string', 'max:255'],
-            'session_id' => ['sometimes', 'string', 'max:20', 'regex:/^[0-9]+$/'],
-            'overdue' => ['sometimes', 'in:1'],
+            'status' => ['nullable', TaskRules::statusRule()],
+            'priority' => ['nullable', TaskRules::priorityRule()],
+            'assignee' => ['nullable', 'integer', 'exists:sessions,id'],
+            'project' => ['nullable', 'string'],
+            'q' => ['nullable', 'string', 'max:255'],
+            'session_id' => ['nullable', 'string', 'max:20', 'regex:/^[0-9]+$/'],
+            'overdue' => ['nullable', 'in:1'],
         ]);
 
         $query = Task::query()

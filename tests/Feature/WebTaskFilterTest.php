@@ -90,4 +90,57 @@ class WebTaskFilterTest extends TestCase
             ->assertSee('name="session_id"', false)
             ->assertSee('value="34926"', false);
     }
+
+    public function test_apply_filter_with_all_empty_query_params_returns_ok_without_validation_errors(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get('/tasks?assignee=&project=&priority=&overdue=&session_id=&q=&status=')
+            ->assertOk()
+            ->assertDontSee('The selected priority is invalid', false)
+            ->assertDontSee('must be a string', false)
+            ->assertDontSee('session id field', false);
+    }
+
+    public function test_single_empty_filter_params_return_ok(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->get('/tasks?priority=')->assertOk();
+        $this->actingAs($user)->get('/tasks?session_id=')->assertOk();
+        $this->actingAs($user)->get('/tasks?q=')->assertOk();
+    }
+
+    public function test_duplicate_q_array_param_does_not_trigger_string_validation_error(): void
+    {
+        [$user] = $this->seedTasksWithSessions();
+
+        $this->actingAs($user)
+            ->get('/tasks?q[]=satu&q[]=dua')
+            ->assertOk()
+            ->assertDontSee('must be a string', false);
+    }
+
+    public function test_session_id_filter_still_works_and_empty_q_does_not_change_result_count(): void
+    {
+        [$user, $sessionKeu] = $this->seedTasksWithSessions();
+
+        $unfiltered = $this->actingAs($user)->get('/tasks')->assertOk();
+        $unfilteredCount = substr_count($unfiltered->getContent(), 'CLK-');
+
+        $this->actingAs($user)
+            ->get('/tasks?q=')
+            ->assertOk()
+            ->assertSee('CLK-1')
+            ->assertSee('CLK-2');
+
+        $this->assertSame(2, $unfilteredCount);
+
+        $this->actingAs($user)
+            ->get('/tasks?session_id='.$sessionKeu->topic_id)
+            ->assertOk()
+            ->assertSee('Task keu')
+            ->assertDontSee('Task lain');
+    }
 }
