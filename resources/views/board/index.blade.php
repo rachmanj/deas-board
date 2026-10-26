@@ -7,7 +7,7 @@
 @section('content')
     <div
         id="board-area"
-        x-data="boardAutoRefresh(@js(route('board.fragment', request()->query())))"
+        x-data="boardAutoRefresh(@js(route('board.version', request()->query())), @js(route('board.fragment', request()->query())))"
         x-init="init()"
     >
         @if($errors->any())

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\Concerns\PreparesTaskViews;
 use App\Models\Task;
+use App\Support\BoardVersion;
 use App\Support\TaskFilterQuery;
 use App\Support\TaskRules;
 use Illuminate\Http\Request;
@@ -30,8 +31,16 @@ class BoardController extends Controller
         ]);
     }
 
+    public function version(Request $request)
+    {
+        return response()
+            ->json(BoardVersion::forRequest($request))
+            ->header('Cache-Control', 'no-store');
+    }
+
     public function fragment(Request $request)
     {
+        $boardVersion = BoardVersion::forRequest($request);
         $columns = $this->columnsForRequest($request);
         $totalTasks = Task::query()->count();
         $visibleCount = collect($columns)->flatten(1)->count();
@@ -50,11 +59,13 @@ class BoardController extends Controller
         if ($request->header('If-None-Match') === $etag) {
             return response('', 304)
                 ->header('ETag', $etag)
+                ->header('X-Board-Hash', $boardVersion['hash'])
                 ->header('Cache-Control', 'no-store');
         }
 
         return response($html, 200)
             ->header('ETag', $etag)
+            ->header('X-Board-Hash', $boardVersion['hash'])
             ->header('Cache-Control', 'no-store');
     }
 

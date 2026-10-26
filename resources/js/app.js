@@ -21,32 +21,20 @@ window.submitForm = function (processingText = 'Memproses...') {
     };
 };
 
-window.boardAutoRefresh = function (fragmentUrl) {
+window.boardAutoRefresh = function (versionUrl, fragmentUrl) {
     const POLL_BASE_MS = 10000;
     const POLL_JITTER_MS = 3000;
 
     return {
+        versionUrl,
         fragmentUrl,
-        lastEtag: null,
-        contentHash: null,
+        lastKnownHash: null,
         pollTimer: null,
         polling: false,
         init() {
-            const container = this.$refs.columnsContainer;
-            if (container) {
-                this.contentHash = this.hashString(container.innerHTML);
-            }
             this.setStatus('Menunggu perubahan…');
             document.addEventListener('visibilitychange', () => this.schedulePoll());
             this.schedulePoll();
-        },
-        hashString(text) {
-            let hash = 0;
-            for (let i = 0; i < text.length; i++) {
-                hash = (hash << 5) - hash + text.charCodeAt(i);
-                hash |= 0;
-            }
-            return String(hash);
         },
         setStatus(text) {
             const el = document.getElementById('board-refresh-status');
@@ -93,46 +81,54 @@ window.boardAutoRefresh = function (fragmentUrl) {
             this.polling = true;
             this.setStatus('Menunggu perubahan…');
 
-            const headers = {
-                'X-Requested-With': 'XMLHttpRequest',
-            };
-            if (this.lastEtag) {
-                headers['If-None-Match'] = this.lastEtag;
-            }
-
             try {
-                const response = await fetch(this.fragmentUrl, {
+                const versionResponse = await fetch(this.versionUrl, {
                     credentials: 'same-origin',
-                    headers,
+                    headers: {
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
                 });
 
-                if (response.status === 304) {
-                    this.markUpdated();
+                if (!versionResponse.ok) {
+                    this.setStatus('Gagal memperbarui, mencoba lagi…');
                     return;
                 }
 
-                if (response.ok) {
-                    const etag = response.headers.get('ETag');
-                    if (etag) {
-                        this.lastEtag = etag;
+                const version = await versionResponse.json();
+                const remoteHash = version.hash;
+
+                if (this.lastKnownHash !== null && remoteHash !== this.lastKnownHash) {
+                    const fragmentResponse = await fetch(this.fragmentUrl, {
+                        credentials: 'same-origin',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    });
+
+                    if (!fragmentResponse.ok) {
+                        this.setStatus('Gagal memperbarui, mencoba lagi…');
+                        return;
                     }
-                    const html = await response.text();
+
+                    const html = await fragmentResponse.text();
                     const container = this.$refs.columnsContainer;
                     if (container) {
-                        const nextHash = this.hashString(html);
-                        if (nextHash !== this.contentHash) {
-                            const scrollY = window.scrollY;
-                            container.innerHTML = html;
-                            if (window.Alpine) {
-                                window.Alpine.initTree(container);
-                            }
-                            this.contentHash = nextHash;
-                            window.scrollTo(0, scrollY);
+                        const scrollY = window.scrollY;
+                        container.innerHTML = html;
+                        if (window.Alpine) {
+                            window.Alpine.initTree(container);
                         }
+                        window.scrollTo(0, scrollY);
                     }
-                    this.markUpdated();
-                    return;
+
+                    const headerHash = fragmentResponse.headers.get('X-Board-Hash');
+                    this.lastKnownHash = headerHash || remoteHash;
+                } else if (this.lastKnownHash === null) {
+                    this.lastKnownHash = remoteHash;
                 }
+
+                this.markUpdated();
             } catch {
                 this.setStatus('Gagal memperbarui, mencoba lagi…');
             } finally {
