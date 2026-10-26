@@ -36,7 +36,7 @@
                 </div>
                 <div class="sm:col-span-2">
                     <button type="submit" :disabled="processing"
-                            class="min-h-11 rounded-lg bg-teal-500 px-4 text-sm font-medium text-zinc-950 hover:bg-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
+                            class="inline-flex min-h-11 items-center justify-center rounded-lg bg-teal-500 px-4 text-center text-sm font-medium text-zinc-950 hover:bg-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
                             data-submit-label="Simpan sesi"
                             x-text="buttonText()">
                         Simpan sesi
@@ -83,7 +83,7 @@
                                                 @csrf
                                                 @method('PATCH')
                                                 <button type="submit"
-                                                        class="min-h-9 rounded-lg border border-zinc-700 px-2 text-xs text-zinc-300 hover:border-zinc-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                                                        class="inline-flex min-h-9 items-center justify-center whitespace-nowrap rounded-lg border border-zinc-700 px-2 text-center text-xs text-zinc-300 hover:border-zinc-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
                                                     Nonaktifkan
                                                 </button>
                                             </form>
@@ -92,7 +92,7 @@
                                                 @csrf
                                                 @method('PATCH')
                                                 <button type="submit"
-                                                        class="min-h-9 rounded-lg border border-teal-500/40 px-2 text-xs text-teal-500 hover:bg-teal-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                                                        class="inline-flex min-h-9 items-center justify-center whitespace-nowrap rounded-lg border border-teal-500/40 px-2 text-center text-xs text-teal-500 hover:bg-teal-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
                                                     Aktifkan
                                                 </button>
                                             </form>
@@ -101,7 +101,7 @@
                                               x-data="submitForm()" @submit="onFormSubmit">
                                             @csrf
                                             <button type="submit" :disabled="processing"
-                                                    class="min-h-9 rounded-lg bg-teal-500/15 px-2 text-xs font-medium text-teal-500 hover:bg-teal-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
+                                                    class="inline-flex min-h-9 items-center justify-center whitespace-nowrap rounded-lg bg-teal-500/15 px-2 text-center text-xs font-medium text-teal-500 hover:bg-teal-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
                                                     data-submit-label="Terbitkan token"
                                                     x-text="buttonText()">
                                                 Terbitkan token
@@ -126,7 +126,7 @@
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit"
-                                                                class="min-h-8 rounded border border-red-500/30 px-2 text-red-400 hover:bg-red-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
+                                                                class="inline-flex min-h-8 items-center justify-center whitespace-nowrap rounded border border-red-500/30 px-2 text-center text-red-400 hover:bg-red-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
                                                             Cabut
                                                         </button>
                                                     </form>

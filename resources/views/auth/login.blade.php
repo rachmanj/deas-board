@@ -29,7 +29,7 @@
                        class="min-h-11 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40">
             </div>
             <button type="submit"
-                    class="min-h-11 w-full rounded-lg bg-teal-500 text-sm font-medium text-zinc-950 hover:bg-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                    class="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-teal-500 text-center text-sm font-medium text-zinc-950 hover:bg-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
                 Masuk
             </button>
         </form>

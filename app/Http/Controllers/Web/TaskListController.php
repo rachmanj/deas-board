@@ -17,7 +17,7 @@ class TaskListController extends Controller
         $tasks = TaskFilterQuery::fromRequest($request)->get();
 
         $totalTasks = Task::query()->count();
-        $hasActiveFilters = $request->hasAny(['assignee', 'project', 'priority', 'overdue', 'q', 'status']);
+        $hasActiveFilters = $request->hasAny(['assignee', 'project', 'priority', 'overdue', 'q', 'session_id', 'status']);
 
         return view('tasks.index', [
             'tasks' => $tasks,

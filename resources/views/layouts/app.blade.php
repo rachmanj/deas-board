@@ -59,13 +59,13 @@
                 <div class="flex shrink-0 items-center gap-2 text-sm">
                     <span class="hidden text-zinc-400 sm:inline">{{ auth()->user()->name }}</span>
                     <a href="{{ route('profile') }}"
-                       class="inline-flex items-center justify-center min-h-11 rounded-lg border border-zinc-800 px-3 text-sm text-zinc-300 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400">
+                       class="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-lg border border-zinc-800 px-3 text-center text-sm text-zinc-300 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400">
                         Profil
                     </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit"
-                                class="inline-flex items-center justify-center min-h-11 rounded-lg border border-zinc-800 px-3 text-sm text-zinc-300 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400">
+                                class="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-lg border border-zinc-800 px-3 text-center text-sm text-zinc-300 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400">
                             Keluar
                         </button>
                     </form>

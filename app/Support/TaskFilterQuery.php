@@ -16,6 +16,7 @@ class TaskFilterQuery
             'assignee' => ['sometimes', 'integer', 'exists:sessions,id'],
             'project' => ['sometimes'],
             'q' => ['sometimes', 'string', 'max:255'],
+            'session_id' => ['sometimes', 'string', 'max:20', 'regex:/^[0-9]+$/'],
             'overdue' => ['sometimes', 'in:1'],
         ]);
 
@@ -47,8 +48,17 @@ class TaskFilterQuery
             $term = $request->string('q');
             $query->where(function ($q) use ($term) {
                 $q->where('title', 'like', '%'.$term.'%')
-                    ->orWhere('code', 'like', '%'.$term.'%');
+                    ->orWhere('code', 'like', '%'.$term.'%')
+                    ->orWhereHas('assigneeSession', function ($s) use ($term) {
+                        $s->where('label', 'like', '%'.$term.'%')
+                            ->orWhere('topic_id', 'like', '%'.$term.'%');
+                    });
             });
+        }
+
+        if ($request->filled('session_id')) {
+            $topicId = $request->string('session_id');
+            $query->whereHas('assigneeSession', fn ($s) => $s->where('topic_id', $topicId));
         }
 
         if ($request->string('overdue') === '1') {

@@ -23,7 +23,7 @@ class BoardController extends Controller
         }
 
         $totalTasks = Task::query()->count();
-        $hasActiveFilters = $request->hasAny(['assignee', 'project', 'priority', 'overdue', 'q']);
+        $hasActiveFilters = $request->hasAny(['assignee', 'project', 'priority', 'overdue', 'q', 'session_id']);
 
         return view('board.index', [
             'columns' => $columns,

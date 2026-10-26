@@ -35,7 +35,7 @@
         @if($canManage)
             <div class="mt-2 flex flex-wrap gap-2">
                 <button type="button"
-                        class="min-h-11 rounded border border-zinc-800 px-3 text-xs text-zinc-400 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                        class="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded border border-zinc-800 px-3 text-center text-xs text-zinc-400 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                         onclick="document.getElementById('edit-comment-{{ $comment->id }}').classList.toggle('hidden')">
                     Ubah
                 </button>
@@ -44,7 +44,7 @@
                     @csrf
                     @method('DELETE')
                     <button type="submit"
-                            class="min-h-11 rounded border border-zinc-800 px-3 text-xs text-red-400 hover:text-red-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                            class="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded border border-zinc-800 px-3 text-center text-xs text-red-400 hover:text-red-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
                         Hapus
                     </button>
                 </form>
@@ -56,7 +56,7 @@
                 <textarea name="body_md" rows="3" required
                           class="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40">{{ $comment->body_md }}</textarea>
                 <button type="submit" :disabled="processing"
-                        class="min-h-11 rounded-lg bg-teal-500 px-3 text-xs font-medium text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
+                        class="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-lg bg-teal-500 px-3 text-center text-xs font-medium text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
                         data-submit-label="Simpan"
                         x-text="buttonText()">
                     Simpan
@@ -65,7 +65,7 @@
         @else
             <div class="mt-2">
                 <button type="button"
-                        class="min-h-11 rounded border border-zinc-800 px-3 text-xs text-zinc-400 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                        class="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded border border-zinc-800 px-3 text-center text-xs text-zinc-400 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                         onclick="document.getElementById('reply-comment-{{ $comment->id }}').classList.toggle('hidden')">
                     Balas
                 </button>
@@ -75,7 +75,7 @@
                 @csrf
                 @include('partials.mention-textarea', ['name' => 'body_md', 'id' => 'reply-body-'.$comment->id, 'rows' => 3, 'placeholder' => 'Tulis balasan…', 'required' => true])
                 <button type="submit" :disabled="processing"
-                        class="min-h-11 rounded-lg bg-teal-500 px-3 text-xs font-medium text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
+                        class="inline-flex min-h-11 items-center justify-center rounded-lg bg-teal-500 px-3 text-center text-xs font-medium text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
                         data-submit-label="Kirim balasan"
                         x-text="buttonText()">
                     Kirim balasan

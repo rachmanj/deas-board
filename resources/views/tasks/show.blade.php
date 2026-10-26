@@ -128,7 +128,7 @@
                                 'value' => old('body_md'),
                             ])
                             <button type="submit" :disabled="processing"
-                                    class="min-h-11 rounded-lg bg-teal-500 px-4 text-sm font-medium text-zinc-950 hover:bg-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
+                                    class="inline-flex min-h-11 items-center justify-center rounded-lg bg-teal-500 px-4 text-center text-sm font-medium text-zinc-950 hover:bg-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
                                     data-submit-label="Kirim komentar"
                                     x-text="buttonText()">
                                 Kirim komentar

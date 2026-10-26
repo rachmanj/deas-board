@@ -17,14 +17,14 @@
                 <input id="issued-token" type="text" readonly value="{{ $plainTextToken }}"
                        class="min-h-11 flex-1 rounded-lg border border-zinc-800 bg-zinc-950 px-3 font-mono text-xs text-zinc-100 focus:outline-none focus:ring-2 focus:ring-teal-500/40">
                 <button type="button" id="copy-token"
-                        class="min-h-11 shrink-0 rounded-lg border border-zinc-700 px-4 text-sm text-zinc-200 hover:border-zinc-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                        class="inline-flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-lg border border-zinc-700 px-4 text-center text-sm text-zinc-200 hover:border-zinc-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
                     Salin
                 </button>
             </div>
         </div>
 
         <a href="{{ route('sessions') }}"
-           class="inline-flex min-h-11 items-center rounded-lg border border-zinc-800 px-4 text-sm text-zinc-400 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+           class="inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-800 px-4 text-center text-sm text-zinc-400 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
             Kembali ke daftar sesi
         </a>
     </div>

@@ -120,19 +120,19 @@
 
     <div class="flex flex-wrap gap-2">
         <button type="submit" :disabled="processing"
-                class="min-h-11 rounded-lg bg-teal-500 px-4 text-sm font-medium text-zinc-950 hover:bg-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
+                class="inline-flex min-h-11 items-center justify-center rounded-lg bg-teal-500 px-4 text-center text-sm font-medium text-zinc-950 hover:bg-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
                 data-submit-label="{{ $isEdit ? 'Simpan perubahan' : 'Buat task' }}"
                 x-text="buttonText()">
             {{ $isEdit ? 'Simpan perubahan' : 'Buat task' }}
         </button>
         @if($isEdit)
             <a href="{{ route('tasks.show', $task) }}"
-               class="inline-flex min-h-11 items-center rounded-lg border border-zinc-800 px-4 text-sm text-zinc-400 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+               class="inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-800 px-4 text-center text-sm text-zinc-400 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
                 Batal
             </a>
         @else
             <a href="{{ route('board') }}"
-               class="inline-flex min-h-11 items-center rounded-lg border border-zinc-800 px-4 text-sm text-zinc-400 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+               class="inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-800 px-4 text-center text-sm text-zinc-400 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
                 Batal
             </a>
         @endif
