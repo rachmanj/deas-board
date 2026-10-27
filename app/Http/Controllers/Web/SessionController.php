@@ -25,7 +25,7 @@ class SessionController extends Controller
             'totalSessions' => $totalSessions,
             'hasActiveFilters' => $hasActiveFilters,
             'filterQuery' => SessionFilterQuery::redirectParams($request),
-            'pageTitle' => 'Sesi',
+            'pageTitle' => 'Sessions',
         ]);
     }
 

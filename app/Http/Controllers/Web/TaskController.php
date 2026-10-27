@@ -115,7 +115,7 @@ class TaskController extends Controller
             'sessions' => Session::query()->where('is_active', true)->orderBy('label')->get(['id', 'label', 'topic_id']),
             'projects' => $this->filterOptions()['projects'],
             'labels' => Label::query()->orderBy('name')->get(['id', 'name', 'color']),
-            'pageTitle' => $task ? 'Ubah task' : 'Task baru',
+            'pageTitle' => $task ? 'Edit task' : 'New task',
         ];
     }
 

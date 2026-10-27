@@ -20,11 +20,11 @@ trait PreparesTaskViews
     protected function statusLabels(): array
     {
         return [
-            'todo' => 'Belum dikerjakan',
-            'in_progress' => 'Dikerjakan',
-            'blocked' => 'Terhambat',
-            'review' => 'Ditinjau',
-            'done' => 'Selesai',
+            'todo' => 'To do',
+            'in_progress' => 'In progress',
+            'blocked' => 'Blocked',
+            'review' => 'Review',
+            'done' => 'Done',
         ];
     }
 

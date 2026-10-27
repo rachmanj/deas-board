@@ -27,7 +27,7 @@ class BoardController extends Controller
             'totalTasks' => $totalTasks,
             'hasActiveFilters' => $hasActiveFilters,
             'filters' => $this->filterOptions(),
-            'pageTitle' => 'Papan',
+            'pageTitle' => 'Board',
         ]);
     }
 

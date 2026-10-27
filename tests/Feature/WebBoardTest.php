@@ -27,11 +27,11 @@ class WebBoardTest extends TestCase
         $response = $this->actingAs($user)->get('/');
 
         $response->assertOk()
-            ->assertSee('Belum dikerjakan')
-            ->assertSee('Dikerjakan')
-            ->assertSee('Terhambat')
-            ->assertSee('Ditinjau')
-            ->assertSee('Selesai')
+            ->assertSee('To do')
+            ->assertSee('In progress')
+            ->assertSee('Blocked')
+            ->assertSee('Review')
+            ->assertSee('Done')
             ->assertSee('Todo task')
             ->assertSee('Progress task');
     }

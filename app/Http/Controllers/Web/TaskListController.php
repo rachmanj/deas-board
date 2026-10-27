@@ -26,7 +26,7 @@ class TaskListController extends Controller
             'totalTasks' => $totalTasks,
             'hasActiveFilters' => $hasActiveFilters,
             'filters' => $this->filterOptions(),
-            'pageTitle' => 'Daftar task',
+            'pageTitle' => 'List',
         ]);
     }
 }
