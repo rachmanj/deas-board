@@ -11,7 +11,7 @@
     <div class="flex min-h-screen flex-col md:flex-row">
         <aside class="border-b border-zinc-800 bg-zinc-900 md:flex md:w-52 md:shrink-0 md:flex-col md:border-b-0 md:border-r">
             <div class="px-4 py-4 text-sm font-semibold text-zinc-100">{{ config('app.name') }}</div>
-            <nav class="flex gap-1 px-2 pb-3 md:flex-col" aria-label="Navigasi utama">
+            <nav class="flex gap-1 px-2 pb-3 md:flex-col" aria-label="Main navigation">
                 <a href="{{ route('board') }}"
                    class="min-h-11 rounded-lg px-3 py-2 text-sm {{ request()->routeIs('board') ? 'bg-teal-500/15 text-teal-500' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100' }} focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
                     Board
@@ -61,13 +61,13 @@
                     <span class="hidden text-zinc-400 sm:inline">{{ auth()->user()->name }}</span>
                     <a href="{{ route('profile') }}"
                        class="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-lg border border-zinc-800 px-3 text-center text-sm text-zinc-300 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400">
-                        Profil
+                        Profile
                     </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit"
                                 class="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-lg border border-zinc-800 px-3 text-center text-sm text-zinc-300 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400">
-                            Keluar
+                            Sign out
                         </button>
                     </form>
                 </div>
