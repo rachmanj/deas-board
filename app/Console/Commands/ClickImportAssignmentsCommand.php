@@ -16,7 +16,8 @@ class ClickImportAssignmentsCommand extends Command
     protected $signature = 'click:import-assignments
                             {--from= : Path to JSON assignments file}
                             {--dry-run : Preview import without writing}
-                            {--apply : Apply import to database}';
+                            {--apply : Apply import to database}
+                            {--keep-review : Allow new tasks to be created with status review}';
 
     protected $description = 'Import tasks from JSON and link them to emails';
 
@@ -31,6 +32,7 @@ class ClickImportAssignmentsCommand extends Command
 
         $dryRun = (bool) $this->option('dry-run');
         $apply = (bool) $this->option('apply');
+        $keepReview = (bool) $this->option('keep-review');
 
         if ($dryRun === $apply) {
             $this->error('Pilih tepat satu: --dry-run atau --apply.');
@@ -61,7 +63,7 @@ class ClickImportAssignmentsCommand extends Command
         foreach ($items as $item) {
             if (! is_array($item)) {
                 $failed++;
-                $planRows[] = ['uid' => '-', 'external_ref' => '-', 'hasil' => 'gagal (format)'];
+                $planRows[] = ['uid' => '-', 'external_ref' => '-', 'status' => '-', 'hasil' => 'gagal (format)'];
 
                 continue;
             }
@@ -82,6 +84,7 @@ class ClickImportAssignmentsCommand extends Command
                 $planRows[] = [
                     'uid' => $uid,
                     'external_ref' => (string) ($externalRef ?? '-'),
+                    'status' => '-',
                     'hasil' => 'gagal (email tidak ditemukan)',
                 ];
 
@@ -97,6 +100,7 @@ class ClickImportAssignmentsCommand extends Command
                 $planRows[] = [
                     'uid' => $uid,
                     'external_ref' => (string) ($externalRef ?? '-'),
+                    'status' => '-',
                     'hasil' => 'gagal (sesi tidak ditemukan)',
                 ];
 
@@ -116,10 +120,20 @@ class ClickImportAssignmentsCommand extends Command
                 $planRows[] = [
                     'uid' => $uid,
                     'external_ref' => (string) $externalRef,
+                    'status' => '-',
                     'hasil' => 'dilewati',
                 ];
 
                 continue;
+            }
+
+            $resolvedStatus = $this->resolveImportStatus(
+                (string) ($item['status'] ?? 'todo'),
+                $keepReview
+            );
+            $hasilLabel = $createdLabel;
+            if ($resolvedStatus['downgraded']) {
+                $hasilLabel .= '; status review diturunkan ke todo (review hanya untuk hasil kerja yang menunggu verifikasi)';
             }
 
             if ($dryRun) {
@@ -131,20 +145,21 @@ class ClickImportAssignmentsCommand extends Command
                 $planRows[] = [
                     'uid' => $uid,
                     'external_ref' => (string) ($externalRef ?? '-'),
-                    'hasil' => $createdLabel,
+                    'status' => $resolvedStatus['display'],
+                    'hasil' => $hasilLabel,
                 ];
 
                 continue;
             }
 
-            DB::transaction(function () use ($item, $email, $session, $hasSessionTopic, &$created, &$createdWithoutAssignee) {
+            DB::transaction(function () use ($item, $email, $session, $hasSessionTopic, $resolvedStatus, &$created, &$createdWithoutAssignee) {
                 $placeholder = 'tmp-'.uniqid();
 
                 $task = Task::create([
                     'code' => $placeholder,
                     'title' => (string) ($item['title'] ?? 'Tanpa judul'),
                     'description_md' => $item['description'] ?? null,
-                    'status' => (string) ($item['status'] ?? 'todo'),
+                    'status' => $resolvedStatus['status'],
                     'priority' => (string) ($item['priority'] ?? 'normal'),
                     'assignee_session_id' => $session?->id,
                     'source' => 'email',
@@ -184,12 +199,13 @@ class ClickImportAssignmentsCommand extends Command
             $planRows[] = [
                 'uid' => $uid,
                 'external_ref' => (string) ($externalRef ?? '-'),
-                'hasil' => $createdLabel,
+                'status' => $resolvedStatus['display'],
+                'hasil' => $hasilLabel,
             ];
         }
 
         if ($dryRun) {
-            $this->table(['uid', 'external_ref', 'hasil'], $planRows);
+            $this->table(['uid', 'external_ref', 'status', 'hasil'], $planRows);
         }
 
         $this->line("Dibuat: {$created}");
@@ -198,6 +214,28 @@ class ClickImportAssignmentsCommand extends Command
         $this->line("Dilewati: {$skipped}");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * @return array{status: string, display: string, downgraded: bool}
+     */
+    private function resolveImportStatus(string $requestedStatus, bool $keepReview): array
+    {
+        $status = $requestedStatus !== '' ? $requestedStatus : 'todo';
+
+        if ($status === 'review' && ! $keepReview) {
+            return [
+                'status' => 'todo',
+                'display' => 'todo (dari review)',
+                'downgraded' => true,
+            ];
+        }
+
+        return [
+            'status' => $status,
+            'display' => $status,
+            'downgraded' => false,
+        ];
     }
 
     private function resolvePath(string $from): string

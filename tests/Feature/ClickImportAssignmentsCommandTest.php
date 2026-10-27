@@ -103,6 +103,164 @@ class ClickImportAssignmentsCommandTest extends TestCase
         $this->assertNull($task->assignee_session_id);
     }
 
+    public function test_import_with_review_status_creates_task_as_todo(): void
+    {
+        Session::create([
+            'label' => 'Assignee',
+            'topic_id' => '88002',
+            'is_active' => true,
+        ]);
+
+        Email::create([
+            'uid' => '5510',
+            'mailbox' => 'INBOX',
+            'status' => 'arsip',
+        ]);
+
+        $jsonPath = $this->writeAssignmentsJson([
+            [
+                'uid' => '5510',
+                'title' => 'Dari review',
+                'session_topic_id' => '88002',
+                'status' => 'review',
+                'priority' => 'normal',
+                'external_ref' => 'ext-review-downgrade',
+            ],
+        ]);
+
+        $this->artisan('click:import-assignments', [
+            '--from' => $jsonPath,
+            '--apply' => true,
+        ])->assertSuccessful();
+
+        $task = Task::query()->where('external_ref', 'ext-review-downgrade')->first();
+        $this->assertNotNull($task);
+        $this->assertSame('todo', $task->status);
+    }
+
+    public function test_import_with_review_status_kept_when_keep_review_option(): void
+    {
+        Session::create([
+            'label' => 'Assignee',
+            'topic_id' => '88003',
+            'is_active' => true,
+        ]);
+
+        Email::create([
+            'uid' => '5511',
+            'mailbox' => 'INBOX',
+            'status' => 'arsip',
+        ]);
+
+        $jsonPath = $this->writeAssignmentsJson([
+            [
+                'uid' => '5511',
+                'title' => 'Tetap review',
+                'session_topic_id' => '88003',
+                'status' => 'review',
+                'priority' => 'normal',
+                'external_ref' => 'ext-review-kept',
+            ],
+        ]);
+
+        $this->artisan('click:import-assignments', [
+            '--from' => $jsonPath,
+            '--apply' => true,
+            '--keep-review' => true,
+        ])->assertSuccessful();
+
+        $task = Task::query()->where('external_ref', 'ext-review-kept')->first();
+        $this->assertNotNull($task);
+        $this->assertSame('review', $task->status);
+    }
+
+    public function test_reimport_does_not_change_existing_task_status(): void
+    {
+        $session = Session::create([
+            'label' => 'Assignee',
+            'topic_id' => '88004',
+            'is_active' => true,
+        ]);
+
+        $email = Email::create([
+            'uid' => '5512',
+            'mailbox' => 'INBOX',
+            'status' => 'arsip',
+        ]);
+
+        $task = Task::create([
+            'code' => 'CLK-99',
+            'title' => 'Sudah ada',
+            'status' => 'in_progress',
+            'priority' => 'normal',
+            'assignee_session_id' => $session->id,
+            'source' => 'email',
+            'external_ref' => 'ext-existing-status',
+        ]);
+
+        EmailTaskLink::create([
+            'email_id' => $email->id,
+            'task_id' => $task->id,
+            'linked_at' => now(),
+        ]);
+
+        $jsonPath = $this->writeAssignmentsJson([
+            [
+                'uid' => '5512',
+                'title' => 'Sudah ada',
+                'session_topic_id' => '88004',
+                'status' => 'review',
+                'priority' => 'normal',
+                'external_ref' => 'ext-existing-status',
+            ],
+        ]);
+
+        $this->artisan('click:import-assignments', [
+            '--from' => $jsonPath,
+            '--apply' => true,
+        ])
+            ->assertSuccessful()
+            ->expectsOutputToContain('Dilewati: 1');
+
+        $task->refresh();
+        $this->assertSame('in_progress', $task->status);
+    }
+
+    public function test_dry_run_shows_final_status_without_writing(): void
+    {
+        Session::create([
+            'label' => 'Assignee',
+            'topic_id' => '88005',
+            'is_active' => true,
+        ]);
+
+        Email::create([
+            'uid' => '5513',
+            'mailbox' => 'INBOX',
+            'status' => 'arsip',
+        ]);
+
+        $jsonPath = $this->writeAssignmentsJson([
+            [
+                'uid' => '5513',
+                'title' => 'Dry run review',
+                'session_topic_id' => '88005',
+                'status' => 'review',
+                'priority' => 'normal',
+                'external_ref' => 'ext-dry-run-review',
+            ],
+        ]);
+
+        $this->artisan('click:import-assignments', [
+            '--from' => $jsonPath,
+            '--dry-run' => true,
+        ])
+            ->assertSuccessful()
+            ->expectsOutputToContain('todo (dari review)');
+
+        $this->assertSame(0, Task::query()->where('external_ref', 'ext-dry-run-review')->count());
+    }
+
     public function test_unknown_session_is_reported_as_failed(): void
     {
         Email::create([
