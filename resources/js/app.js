@@ -149,6 +149,24 @@ window.boardAutoRefresh = function (versionUrl, fragmentUrl) {
     };
 };
 
+window.sessionTable = function (initialEditingId = null) {
+    return {
+        editingId: initialEditingId ? Number(initialEditingId) : null,
+        lastEditButton: null,
+        isEditing(id) {
+            return this.editingId === Number(id);
+        },
+        startEdit(id, event) {
+            this.editingId = Number(id);
+            this.lastEditButton = event.currentTarget;
+        },
+        cancelEdit() {
+            this.editingId = null;
+            this.$nextTick(() => this.lastEditButton?.focus());
+        },
+    };
+};
+
 window.taskCardStatus = function () {
     return {
         saving: false,

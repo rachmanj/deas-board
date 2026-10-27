@@ -42,6 +42,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/labels.json', [LabelController::class, 'index'])->name('labels.json');
     Route::get('/sessions', [SessionController::class, 'index'])->name('sessions');
     Route::post('/sessions', [SessionController::class, 'store'])->name('sessions.store');
+    Route::patch('/sessions/{session}', [SessionController::class, 'update'])->name('sessions.update');
     Route::patch('/sessions/{session}/activate', [SessionController::class, 'activate'])->name('sessions.activate');
     Route::patch('/sessions/{session}/deactivate', [SessionController::class, 'deactivate'])->name('sessions.deactivate');
     Route::post('/sessions/{session}/tokens', [SessionController::class, 'issueToken'])->name('sessions.tokens.issue');

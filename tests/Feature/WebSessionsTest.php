@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\ActivityLog;
 use App\Models\Session;
+use App\Models\Task;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -97,5 +98,92 @@ class WebSessionsTest extends TestCase
 
         $this->assertDatabaseMissing('personal_access_tokens', ['id' => $tokenId]);
         $this->assertNotNull(ActivityLog::query()->where('action', 'token.revoked')->first());
+    }
+
+    public function test_patch_session_updates_label_and_logs_activity(): void
+    {
+        $user = $this->actingUser();
+        $session = Session::create(['label' => 'Lama', 'topic_id' => '9001', 'is_active' => true]);
+
+        $this->actingAs($user)
+            ->patch("/sessions/{$session->id}", [
+                '_editing_session' => $session->id,
+                'label' => 'Baru',
+            ])
+            ->assertRedirect('/sessions')
+            ->assertSessionHas('info');
+
+        $session->refresh();
+        $this->assertSame('Baru', $session->label);
+
+        $log = ActivityLog::query()->where('action', 'session.updated')->first();
+        $this->assertNotNull($log);
+        $this->assertSame('Lama', $log->changes['label']['old']);
+        $this->assertSame('Baru', $log->changes['label']['new']);
+    }
+
+    public function test_patch_session_does_not_change_topic_id_from_payload(): void
+    {
+        $user = $this->actingUser();
+        $session = Session::create(['label' => 'S', 'topic_id' => '42', 'is_active' => true]);
+
+        $this->actingAs($user)
+            ->patch("/sessions/{$session->id}", [
+                '_editing_session' => $session->id,
+                'label' => 'S',
+                'topic_id' => '99999',
+            ])
+            ->assertRedirect('/sessions');
+
+        $this->assertSame('42', $session->fresh()->topic_id);
+    }
+
+    public function test_sessions_search_and_filters(): void
+    {
+        $user = $this->actingUser();
+        Session::create(['label' => 'Hermes Alpha', 'topic_id' => '100', 'chat_id' => 'c-1', 'is_active' => true]);
+        Session::create(['label' => 'Beta', 'topic_id' => '200', 'is_active' => false]);
+        $busy = Session::create(['label' => 'Busy', 'topic_id' => '300', 'is_active' => true]);
+        Session::create(['label' => 'Quiet', 'topic_id' => '400', 'is_active' => true]);
+
+        Task::create(['code' => 'CLK-1', 'title' => 'T1', 'status' => 'todo', 'priority' => 'normal', 'assignee_session_id' => $busy->id]);
+        Task::create(['code' => 'CLK-2', 'title' => 'T2', 'status' => 'todo', 'priority' => 'normal', 'assignee_session_id' => $busy->id]);
+        Task::create(['code' => 'CLK-3', 'title' => 'T3', 'status' => 'done', 'priority' => 'normal', 'assignee_session_id' => $busy->id]);
+        Task::create(['code' => 'CLK-4', 'title' => 'T4', 'status' => 'todo', 'priority' => 'normal', 'assignee_session_id' => Session::query()->where('topic_id', '400')->value('id')]);
+
+        $this->actingAs($user)->get('/sessions?q=Alpha')
+            ->assertOk()
+            ->assertSee('Hermes Alpha')
+            ->assertDontSee('Beta');
+
+        $this->actingAs($user)->get('/sessions?q=200')
+            ->assertOk()
+            ->assertSee('Beta')
+            ->assertDontSee('Hermes Alpha');
+
+        $this->actingAs($user)->get('/sessions?status=nonaktif')
+            ->assertOk()
+            ->assertSee('Beta')
+            ->assertDontSee('Hermes Alpha');
+
+        $response = $this->actingAs($user)->get('/sessions?sort=tasks');
+        $response->assertOk();
+        $content = $response->getContent();
+        $busyPos = strpos($content, 'Busy');
+        $quietPos = strpos($content, 'Quiet');
+        $this->assertNotFalse($busyPos);
+        $this->assertNotFalse($quietPos);
+        $this->assertLessThan($quietPos, $busyPos);
+    }
+
+    public function test_sessions_search_with_no_results_shows_empty_state(): void
+    {
+        $user = $this->actingUser();
+        Session::create(['label' => 'Only', 'topic_id' => '1', 'is_active' => true]);
+
+        $this->actingAs($user)->get('/sessions?q=zzznomatch')
+            ->assertOk()
+            ->assertSee('Tidak ada sesi yang cocok dengan filter')
+            ->assertDontSee('Only');
     }
 }
