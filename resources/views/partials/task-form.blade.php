@@ -119,20 +119,20 @@
     </div>
 
     <div class="flex flex-wrap gap-2">
-        <button type="submit" :disabled="processing"
-                class="inline-flex min-h-11 items-center justify-center rounded-lg bg-teal-500 px-4 text-center text-sm font-medium text-zinc-950 hover:bg-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
+                <button type="submit" :disabled="processing"
+                        class="inline-flex min-h-11 sm:min-h-10 items-center justify-center rounded-xl bg-teal-500/90 px-3.5 text-center text-sm font-medium text-zinc-950 shadow-sm hover:bg-teal-500 active:bg-teal-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900 disabled:opacity-60"
                 data-submit-label="{{ $isEdit ? 'Simpan perubahan' : 'Buat task' }}"
                 x-text="buttonText()">
             {{ $isEdit ? 'Simpan perubahan' : 'Buat task' }}
         </button>
         @if($isEdit)
             <a href="{{ route('tasks.show', $task) }}"
-               class="inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-800 px-4 text-center text-sm text-zinc-400 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+               class="inline-flex min-h-11 sm:min-h-10 items-center justify-center rounded-xl border border-zinc-800/80 px-3.5 text-center text-sm font-medium text-zinc-300 hover:bg-zinc-800/60 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
                 Batal
             </a>
         @else
             <a href="{{ route('board') }}"
-               class="inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-800 px-4 text-center text-sm text-zinc-400 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+               class="inline-flex min-h-11 sm:min-h-10 items-center justify-center rounded-xl border border-zinc-800/80 px-3.5 text-center text-sm font-medium text-zinc-300 hover:bg-zinc-800/60 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
                 Batal
             </a>
         @endif

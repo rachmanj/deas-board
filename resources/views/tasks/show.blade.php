@@ -72,17 +72,17 @@
                 <div class="flex flex-wrap border-b border-zinc-800" role="tablist">
                     <a href="{{ $taskTabUrl('diskusi') }}" role="tab"
                        aria-selected="{{ $activeTab === 'diskusi' ? 'true' : 'false' }}"
-                       class="min-h-11 px-4 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500 {{ $tabLinkClass('diskusi') }}">
+                       class="min-h-11 sm:min-h-10 px-4 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500/60 {{ $tabLinkClass('diskusi') }}">
                         Diskusi
                     </a>
                     <a href="{{ $taskTabUrl('status') }}" role="tab"
                        aria-selected="{{ $activeTab === 'status' ? 'true' : 'false' }}"
-                       class="min-h-11 inline-flex items-center px-4 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500 {{ $tabLinkClass('status') }}">
+                       class="min-h-11 sm:min-h-10 inline-flex items-center px-4 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500/60 {{ $tabLinkClass('status') }}">
                         Riwayat status
                     </a>
                     <a href="{{ $taskTabUrl('perubahan') }}" role="tab"
                        aria-selected="{{ $activeTab === 'perubahan' ? 'true' : 'false' }}"
-                       class="min-h-11 inline-flex items-center px-4 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500 {{ $tabLinkClass('perubahan') }}">
+                       class="min-h-11 sm:min-h-10 inline-flex items-center px-4 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500/60 {{ $tabLinkClass('perubahan') }}">
                         Riwayat perubahan
                     </a>
                 </div>
@@ -128,7 +128,7 @@
                                 'value' => old('body_md'),
                             ])
                             <button type="submit" :disabled="processing"
-                                    class="inline-flex min-h-11 items-center justify-center rounded-lg bg-teal-500 px-4 text-center text-sm font-medium text-zinc-950 hover:bg-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
+                                    class="inline-flex min-h-11 sm:min-h-10 items-center justify-center rounded-xl bg-teal-500/90 px-3.5 text-center text-sm font-medium text-zinc-950 shadow-sm hover:bg-teal-500 active:bg-teal-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900 disabled:opacity-60"
                                     data-submit-label="Kirim komentar"
                                     x-text="buttonText()">
                                 Kirim komentar
@@ -192,7 +192,7 @@
             <div class="mb-4 flex items-center justify-between gap-2">
                 <h3 class="font-semibold text-zinc-100">Detail</h3>
                 <a href="{{ route('tasks.edit', $task) }}"
-                   class="min-h-9 rounded-lg border border-zinc-800 px-2 text-xs text-teal-500 hover:border-zinc-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                   class="inline-flex min-h-11 sm:min-h-10 items-center justify-center rounded-xl border border-zinc-800/80 px-3.5 text-xs font-medium text-teal-500 hover:bg-zinc-800/60 hover:text-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
                     Ubah
                 </a>
             </div>

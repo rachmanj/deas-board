@@ -43,7 +43,7 @@
                 </div>
                 <div class="sm:col-span-2">
                     <button type="submit" :disabled="processing"
-                            class="inline-flex min-h-11 items-center justify-center rounded-lg bg-teal-500 px-4 text-center text-sm font-medium text-zinc-950 hover:bg-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
+                            class="inline-flex min-h-11 sm:min-h-10 items-center justify-center rounded-xl bg-teal-500/90 px-3.5 text-center text-sm font-medium text-zinc-950 shadow-sm hover:bg-teal-500 active:bg-teal-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900 disabled:opacity-60"
                             data-submit-label="Simpan sesi"
                             x-text="buttonText()">
                         Simpan sesi
@@ -59,7 +59,7 @@
                 <div class="rounded-xl border border-zinc-800 bg-zinc-900 px-6 py-10 text-center text-sm text-zinc-400">
                     <p class="mb-4">Tidak ada sesi yang cocok dengan filter</p>
                     <a href="{{ route('sessions') }}"
-                       class="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-lg border border-zinc-800 px-4 text-center text-zinc-100 hover:border-zinc-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                       class="inline-flex min-h-11 sm:min-h-10 items-center justify-center whitespace-nowrap rounded-xl border border-zinc-800/80 px-3.5 text-center text-sm font-medium text-zinc-300 hover:bg-zinc-800/60 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
                         Clear filters
                     </a>
                 </div>
@@ -156,16 +156,16 @@
                                                         x-show="!isEditing({{ $session->id }})"
                                                         @click="startEdit({{ $session->id }}, $event)"
                                                         :aria-expanded="isEditing({{ $session->id }})"
-                                                        class="inline-flex min-h-9 items-center justify-center whitespace-nowrap rounded-lg border border-zinc-700 px-2 text-center text-xs text-zinc-300 hover:border-zinc-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                                                        class="inline-flex min-h-11 sm:min-h-10 items-center justify-center whitespace-nowrap rounded-xl border border-zinc-800/80 px-3.5 text-center text-xs font-medium text-zinc-300 hover:bg-zinc-800/60 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
                                                     Ubah
                                                 </button>
                                                 <div x-show="isEditing({{ $session->id }})" x-cloak class="flex flex-wrap gap-2">
                                                     <button type="submit" form="{{ $editFormId }}"
-                                                            class="inline-flex min-h-9 items-center justify-center whitespace-nowrap rounded-lg bg-teal-500 px-2 text-center text-xs font-medium text-zinc-950 hover:bg-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                                                            class="inline-flex min-h-11 sm:min-h-10 items-center justify-center whitespace-nowrap rounded-xl bg-teal-500/90 px-3.5 text-center text-xs font-medium text-zinc-950 shadow-sm hover:bg-teal-500 active:bg-teal-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
                                                         Simpan
                                                     </button>
                                                     <button type="button" @click="cancelEdit()"
-                                                            class="inline-flex min-h-9 items-center justify-center whitespace-nowrap rounded-lg border border-zinc-700 px-2 text-center text-xs text-zinc-300 hover:border-zinc-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                                                            class="inline-flex min-h-11 sm:min-h-10 items-center justify-center whitespace-nowrap rounded-xl border border-zinc-800/80 px-3.5 text-center text-xs font-medium text-zinc-300 hover:bg-zinc-800/60 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
                                                         Batal
                                                     </button>
                                                 </div>
@@ -178,7 +178,7 @@
                                                                 <input type="hidden" name="{{ $filterKey }}" value="{{ $filterValue }}">
                                                             @endforeach
                                                             <button type="submit"
-                                                                    class="inline-flex min-h-9 items-center justify-center whitespace-nowrap rounded-lg border border-zinc-700 px-2 text-center text-xs text-zinc-300 hover:border-zinc-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                                                                    class="inline-flex min-h-11 sm:min-h-10 items-center justify-center whitespace-nowrap rounded-xl border border-zinc-800/80 px-3.5 text-center text-xs font-medium text-zinc-300 hover:bg-zinc-800/60 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
                                                                 Nonaktifkan
                                                             </button>
                                                         </form>
@@ -190,7 +190,7 @@
                                                                 <input type="hidden" name="{{ $filterKey }}" value="{{ $filterValue }}">
                                                             @endforeach
                                                             <button type="submit"
-                                                                    class="inline-flex min-h-9 items-center justify-center whitespace-nowrap rounded-lg border border-teal-500/40 px-2 text-center text-xs text-teal-500 hover:bg-teal-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                                                                    class="inline-flex min-h-11 sm:min-h-10 items-center justify-center whitespace-nowrap rounded-xl border border-teal-500/40 px-3.5 text-center text-xs font-medium text-teal-500 hover:bg-teal-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
                                                                 Aktifkan
                                                             </button>
                                                         </form>
@@ -202,7 +202,7 @@
                                                             <input type="hidden" name="{{ $filterKey }}" value="{{ $filterValue }}">
                                                         @endforeach
                                                         <button type="submit" :disabled="processing"
-                                                                class="inline-flex min-h-9 items-center justify-center whitespace-nowrap rounded-lg bg-teal-500/15 px-2 text-center text-xs font-medium text-teal-500 hover:bg-teal-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
+                                                                class="inline-flex min-h-11 sm:min-h-10 items-center justify-center whitespace-nowrap rounded-xl bg-teal-500/15 px-3.5 text-center text-xs font-medium text-teal-500 hover:bg-teal-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900 disabled:opacity-60"
                                                                 data-submit-label="Terbitkan token"
                                                                 x-text="buttonText()">
                                                             Terbitkan token
@@ -231,7 +231,7 @@
                                                                     <input type="hidden" name="{{ $filterKey }}" value="{{ $filterValue }}">
                                                                 @endforeach
                                                                 <button type="submit"
-                                                                        class="inline-flex min-h-8 items-center justify-center whitespace-nowrap rounded border border-red-500/30 px-2 text-center text-red-400 hover:bg-red-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
+                                                                        class="inline-flex min-h-11 sm:min-h-10 items-center justify-center whitespace-nowrap rounded-xl border border-zinc-800/80 px-3.5 text-center text-xs font-medium text-red-400 hover:bg-zinc-800/60 hover:text-red-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
                                                                     Cabut
                                                                 </button>
                                                             </form>

@@ -24,12 +24,12 @@
         </select>
     </div>
     <button type="submit"
-            class="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-lg bg-teal-500 px-4 text-center text-sm font-medium text-zinc-950 hover:bg-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900">
+            class="inline-flex min-h-11 sm:min-h-10 items-center justify-center whitespace-nowrap rounded-xl bg-teal-500/90 px-3.5 text-center text-sm font-medium text-zinc-950 shadow-sm hover:bg-teal-500 active:bg-teal-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
         Apply
     </button>
     @if($hasActiveFilters ?? false)
         <a href="{{ route('sessions') }}"
-           class="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-lg border border-zinc-800 px-4 text-center text-sm text-zinc-100 hover:border-zinc-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+           class="inline-flex min-h-11 sm:min-h-10 items-center justify-center whitespace-nowrap rounded-xl border border-zinc-800/80 px-3.5 text-center text-sm font-medium text-zinc-300 hover:bg-zinc-800/60 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
             Clear filters
         </a>
     @endif

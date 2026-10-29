@@ -32,8 +32,16 @@ Dokumen ini mengikat. Setiap perubahan antarmuka harus selaras dengan aturan di 
 
 ## Radius
 
-- **Kontrol** (input, tombol, select): **8 piksel** (`rounded-lg`).
+- **Input, select, textarea:** **8 piksel** (`rounded-lg`).
+- **Tombol** (aksi utama, sekunder, tautan bergaya tombol): **12 piksel** (`rounded-xl`).
 - **Panel** (kartu, modal, blok besar): **12 piksel** (`rounded-xl`).
+
+## Tombol
+
+- **Tinggi:** **40 piksel** di layar `sm` ke atas (`min-h-10`); **44 piksel** di layar sangat kecil (`min-h-11 sm:min-h-10`) agar area ketuk di ponsel tetap memadai.
+- **Alasan:** tombol lebih ringan agar tidak bersaing dengan isi papan, tetapi area ketuk di ponsel tetap 44px.
+- **Bayangan:** hanya tombol utama (`shadow-sm`); tombol sekunder tanpa bayangan.
+- **Fokus:** `focus-visible:ring-2 focus-visible:ring-teal-500/60` dengan `ring-offset-1` (bukan 2).
 
 ## Larangan mengikat
 
@@ -43,6 +51,7 @@ Dokumen ini mengikat. Setiap perubahan antarmuka harus selaras dengan aturan di 
 
 ## Aksesibilitas
 
-- Semua **kontrol interaktif** minimal **44 piksel** tinggi (`min-h-11` atau setara).
+- **Input, select, textarea,** dan target sentuh selain tombol desktop: minimal **44 piksel** tinggi (`min-h-11`).
+- **Tombol:** ikuti aturan tinggi responsif di bagian Tombol (44px di layar kecil, 40px di desktop).
 - **Cincin fokus** `teal-500` harus terlihat jelas (`focus-visible:ring-2` pada teal).
 - **Kontras teks normal** minimal **4,5:1**; teks sekunder mengikuti aturan `zinc-400` di atas.

@@ -11,6 +11,9 @@
         && $author instanceof User
         && auth()->id() === $author->id;
     $replies = $allComments->where('parent_id', $comment->id)->values();
+
+    $btnSecondaryXs = 'inline-flex min-h-11 sm:min-h-10 items-center justify-center whitespace-nowrap rounded-xl border border-zinc-800/80 px-3.5 text-center text-xs font-medium text-zinc-300 hover:bg-zinc-800/60 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900';
+    $btnPrimaryXs = 'inline-flex min-h-11 sm:min-h-10 items-center justify-center whitespace-nowrap rounded-xl bg-teal-500/90 px-3.5 text-center text-xs font-medium text-zinc-950 shadow-sm hover:bg-teal-500 active:bg-teal-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900 disabled:opacity-60';
 @endphp
 
 <article class="{{ $depth > 0 ? 'ml-4 border-l border-zinc-800 pl-4' : '' }}" id="comment-{{ $comment->id }}">
@@ -35,7 +38,7 @@
         @if($canManage)
             <div class="mt-2 flex flex-wrap gap-2">
                 <button type="button"
-                        class="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded border border-zinc-800 px-3 text-center text-xs text-zinc-400 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                        class="{{ $btnSecondaryXs }}"
                         onclick="document.getElementById('edit-comment-{{ $comment->id }}').classList.toggle('hidden')">
                     Ubah
                 </button>
@@ -44,7 +47,7 @@
                     @csrf
                     @method('DELETE')
                     <button type="submit"
-                            class="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded border border-zinc-800 px-3 text-center text-xs text-red-400 hover:text-red-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                            class="{{ $btnSecondaryXs }} text-red-400 hover:text-red-300">
                         Hapus
                     </button>
                 </form>
@@ -56,7 +59,7 @@
                 <textarea name="body_md" rows="3" required
                           class="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40">{{ $comment->body_md }}</textarea>
                 <button type="submit" :disabled="processing"
-                        class="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-lg bg-teal-500 px-3 text-center text-xs font-medium text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
+                        class="{{ $btnPrimaryXs }}"
                         data-submit-label="Simpan"
                         x-text="buttonText()">
                     Simpan
@@ -65,7 +68,7 @@
         @else
             <div class="mt-2">
                 <button type="button"
-                        class="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded border border-zinc-800 px-3 text-center text-xs text-zinc-400 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                        class="{{ $btnSecondaryXs }}"
                         onclick="document.getElementById('reply-comment-{{ $comment->id }}').classList.toggle('hidden')">
                     Balas
                 </button>
@@ -75,7 +78,7 @@
                 @csrf
                 @include('partials.mention-textarea', ['name' => 'body_md', 'id' => 'reply-body-'.$comment->id, 'rows' => 3, 'placeholder' => 'Tulis balasan…', 'required' => true])
                 <button type="submit" :disabled="processing"
-                        class="inline-flex min-h-11 items-center justify-center rounded-lg bg-teal-500 px-3 text-center text-xs font-medium text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:opacity-60"
+                        class="{{ $btnPrimaryXs }}"
                         data-submit-label="Kirim balasan"
                         x-text="buttonText()">
                     Kirim balasan

@@ -23,7 +23,7 @@
                 <button type="button"
                         @click="pick(item)"
                         :class="index === activeIndex ? 'bg-teal-500/15 text-teal-400' : 'text-zinc-200 hover:bg-zinc-800'"
-                        class="flex w-full min-h-10 items-center gap-2 px-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500"
+                        class="flex w-full min-h-11 sm:min-h-10 items-center gap-2 px-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500/60"
                         role="option">
                     <span x-text="item.label" class="font-medium"></span>
                     <span x-show="item.type === 'session'" class="text-xs text-zinc-400" x-text="'@' + item.topic"></span>

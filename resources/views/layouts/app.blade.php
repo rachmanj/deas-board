@@ -13,15 +13,15 @@
             <div class="px-4 py-4 text-sm font-semibold text-zinc-100">{{ config('app.name') }}</div>
             <nav class="flex gap-1 px-2 pb-3 md:flex-col" aria-label="Main navigation">
                 <a href="{{ route('board') }}"
-                   class="min-h-11 rounded-lg px-3 py-2 text-sm {{ request()->routeIs('board') ? 'bg-teal-500/15 text-teal-500' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100' }} focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                   class="min-h-11 sm:min-h-10 rounded-lg px-3 py-2 text-sm {{ request()->routeIs('board') ? 'bg-teal-500/15 text-teal-500' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100' }} focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
                     Board
                 </a>
                 <a href="{{ route('tasks.index') }}"
-                   class="min-h-11 rounded-lg px-3 py-2 text-sm {{ request()->routeIs('tasks.*') ? 'bg-teal-500/15 text-teal-500' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100' }} focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                   class="min-h-11 sm:min-h-10 rounded-lg px-3 py-2 text-sm {{ request()->routeIs('tasks.*') ? 'bg-teal-500/15 text-teal-500' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100' }} focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
                     List
                 </a>
                 <a href="{{ route('sessions') }}"
-                   class="min-h-11 rounded-lg px-3 py-2 text-sm {{ request()->routeIs('sessions*') ? 'bg-teal-500/15 text-teal-500' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100' }} focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                   class="min-h-11 sm:min-h-10 rounded-lg px-3 py-2 text-sm {{ request()->routeIs('sessions*') ? 'bg-teal-500/15 text-teal-500' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100' }} focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
                     Sessions
                 </a>
             </nav>
@@ -35,7 +35,7 @@
                 </div>
                 <a href="{{ route('tasks.create') }}"
                    aria-label="New task"
-                   class="inline-flex shrink-0 items-center justify-center gap-2 min-h-11 rounded-lg bg-teal-500 px-4 text-sm font-semibold text-zinc-950 transition-colors hover:bg-teal-400 active:bg-teal-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900">
+                   class="inline-flex shrink-0 items-center justify-center gap-2 min-h-11 sm:min-h-10 rounded-xl bg-teal-500/90 px-4 text-sm font-medium text-zinc-950 shadow-sm transition-colors hover:bg-teal-500 active:bg-teal-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
                     <svg class="h-4 w-4 shrink-0" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                         <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
@@ -60,13 +60,13 @@
                 <div class="flex shrink-0 items-center gap-2 text-sm">
                     <span class="hidden text-zinc-400 sm:inline">{{ auth()->user()->name }}</span>
                     <a href="{{ route('profile') }}"
-                       class="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-lg border border-zinc-800 px-3 text-center text-sm text-zinc-300 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400">
+                       class="inline-flex min-h-11 sm:min-h-10 items-center justify-center whitespace-nowrap rounded-xl border border-zinc-800/80 px-3.5 text-center text-sm font-medium text-zinc-300 hover:bg-zinc-800/60 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
                         Profile
                     </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit"
-                                class="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-lg border border-zinc-800 px-3 text-center text-sm text-zinc-300 hover:border-zinc-700 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400">
+                                class="inline-flex min-h-11 sm:min-h-10 items-center justify-center whitespace-nowrap rounded-xl border border-zinc-800/80 px-3.5 text-center text-sm font-medium text-zinc-300 hover:bg-zinc-800/60 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
                             Sign out
                         </button>
                     </form>
