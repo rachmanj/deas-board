@@ -1,19 +1,7 @@
 @extends('layouts.app')
 
 @php
-    use App\Models\Session;
-    use App\Models\User;
-
-    $actorLabel = function ($actor) {
-        if ($actor instanceof Session) {
-            return $actor->label.' ('.$actor->topic_id.')';
-        }
-        if ($actor instanceof User) {
-            return $actor->name;
-        }
-
-        return 'Sistem';
-    };
+    use App\Support\ActorLabel;
 
     $formatLogChanges = function ($log) {
         if (! is_array($log->changes) || $log->changes === []) {
@@ -156,7 +144,7 @@
                                         @endif
                                         <p class="mt-1 text-xs text-zinc-400">
                                             {{ $update->created_at?->format('d M Y H:i') }}
-                                            · {{ $actorLabel($update->actor) }}
+                                            · {{ ActorLabel::label($update->actor_type, $update->actor_id) }}
                                         </p>
                                     </li>
                                 @endforeach
@@ -177,7 +165,7 @@
                                         </p>
                                         <p class="mt-1 text-xs text-zinc-400">
                                             {{ $log->created_at?->format('d M Y H:i') }}
-                                            · {{ $actorLabel($log->actor) }}
+                                            · {{ ActorLabel::label($log->actor_type, $log->actor_id) }}
                                         </p>
                                     </li>
                                 @endforeach

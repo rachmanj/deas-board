@@ -7,6 +7,7 @@ use App\Models\Notification;
 use App\Models\Session;
 use App\Models\Task;
 use App\Models\TaskComment;
+use App\Models\TaskUpdate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -321,5 +322,81 @@ class WebTaskDetailTest extends TestCase
         }
 
         return $matches[1];
+    }
+
+    public function test_detail_page_survives_legacy_lead_morph_types_and_shows_session_label(): void
+    {
+        $user = $this->user();
+        $session = Session::create(['label' => 'Lead Lama', 'topic_id' => '42', 'is_active' => true]);
+        $task = Task::create([
+            'code' => 'CLK-LEAD',
+            'title' => 'Legacy lead',
+            'status' => 'todo',
+            'priority' => 'normal',
+        ]);
+
+        TaskUpdate::create([
+            'task_id' => $task->id,
+            'from_status' => 'todo',
+            'to_status' => 'doing',
+            'actor_type' => 'lead',
+            'actor_id' => $session->id,
+        ]);
+
+        TaskComment::create([
+            'task_id' => $task->id,
+            'body_md' => 'Komentar lead',
+            'author_type' => 'lead',
+            'author_id' => $session->id,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('tasks.show', ['task' => $task, 'tab' => 'status']))
+            ->assertOk()
+            ->assertSee('Lead Lama (42)', false);
+
+        $this->actingAs($user)
+            ->get(route('tasks.show', $task))
+            ->assertOk()
+            ->assertSee('Lead Lama (42)', false)
+            ->assertSee('Komentar lead');
+    }
+
+    public function test_detail_page_shows_tidak_dikenal_for_unknown_actor_type_without_500(): void
+    {
+        $user = $this->user();
+        $task = Task::create([
+            'code' => 'CLK-ALIEN',
+            'title' => 'Alien actor',
+            'status' => 'todo',
+            'priority' => 'normal',
+        ]);
+
+        TaskComment::create([
+            'task_id' => $task->id,
+            'body_md' => 'Dari makhluk asing',
+            'author_type' => 'alien',
+            'author_id' => 1,
+        ]);
+
+        ActivityLog::create([
+            'action' => 'task.created',
+            'subject_type' => Task::class,
+            'subject_id' => $task->id,
+            'actor_type' => 'alien',
+            'actor_id' => 999,
+            'changes' => [],
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('tasks.show', ['task' => $task, 'tab' => 'perubahan']))
+            ->assertOk()
+            ->assertSee('Tidak dikenal', false);
+
+        $this->actingAs($user)
+            ->get(route('tasks.show', $task))
+            ->assertOk()
+            ->assertSee('Tidak dikenal', false)
+            ->assertSee('Dari makhluk asing');
     }
 }

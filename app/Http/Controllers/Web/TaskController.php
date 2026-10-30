@@ -42,7 +42,6 @@ class TaskController extends Controller
         $priorityLabels = $this->priorityLabels();
 
         $updates = $task->updates()
-            ->with('actor')
             ->orderByDesc('id')
             ->get();
 
@@ -61,13 +60,11 @@ class TaskController extends Controller
                     });
                 }
             })
-            ->with('actor')
             ->orderByDesc('id')
             ->get();
 
         $allComments = $task->comments()
             ->withTrashed()
-            ->with(['author'])
             ->orderByDesc('id')
             ->get();
 

@@ -1,15 +1,14 @@
 @php
-    use App\Models\Session;
     use App\Models\User;
+    use App\Support\ActorLabel;
 
-    $author = $comment->author;
-    $authorLabel = $author instanceof Session
-        ? $author->label.' ('.$author->topic_id.')'
-        : ($author?->name ?? 'Tidak dikenal');
+    $authorLabel = ActorLabel::label($comment->author_type, $comment->author_id);
     $isDeleted = $comment->trashed();
+    $authorIsUser = ($comment->author_type === User::class || $comment->author_type === 'user')
+        && $comment->author_id !== null;
     $canManage = ! $isDeleted
-        && $author instanceof User
-        && auth()->id() === $author->id;
+        && $authorIsUser
+        && auth()->id() === $comment->author_id;
     $replies = $allComments->where('parent_id', $comment->id)->values();
 
     $btnSecondaryXs = 'inline-flex min-h-11 sm:min-h-10 items-center justify-center whitespace-nowrap rounded-xl border border-zinc-800/80 px-3.5 text-center text-xs font-medium text-zinc-300 hover:bg-zinc-800/60 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900';
