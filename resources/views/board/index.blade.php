@@ -28,20 +28,24 @@
         ])
 
         @php
-            $visibleCount = collect($columns)->flatten(1)->count();
+            $boardHasContent = $totalTasks > 0 && ($activeVisibleCount > 0 || $doneStrip['total'] > 0 || $statusDoneFilter);
+            $filterEmpty = $activeVisibleCount === 0 && $doneStrip['total'] === 0;
         @endphp
 
         @include('partials.empty-states', [
             'totalTasks' => $totalTasks,
             'hasActiveFilters' => $hasActiveFilters,
-            'isEmpty' => $visibleCount === 0,
+            'isEmpty' => $filterEmpty,
             'clearFiltersUrl' => route('board'),
         ])
 
         <div id="board-columns-container" x-ref="columnsContainer">
-            @if($totalTasks > 0 && $visibleCount > 0)
-                @include('partials.board-columns', [
+            @if($boardHasContent)
+                @include('partials.board-fragment', [
                     'columns' => $columns,
+                    'doneStrip' => $doneStrip,
+                    'statusDoneFilter' => $statusDoneFilter,
+                    'viewAllQuery' => $viewAllQuery,
                     'statusLabels' => $statusLabels,
                     'priorityLabels' => $priorityLabels,
                 ])

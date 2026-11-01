@@ -1,4 +1,4 @@
-<div class="grid gap-3 lg:grid-cols-5">
+<div class="grid gap-3 lg:grid-cols-4">
     @foreach($columns as $status => $items)
         <section class="flex min-w-0 flex-col rounded-xl border border-zinc-800 bg-zinc-900" aria-labelledby="col-{{ $status }}">
             <header class="border-b border-zinc-800 px-3 py-3">
@@ -15,7 +15,11 @@
                         'priorityLabels' => $priorityLabels,
                     ])
                 @empty
-                    <p class="px-2 py-4 text-center text-xs text-zinc-400">Kosong</p>
+                    @if(!empty($statusDoneFilter))
+                        <p class="px-2 py-4 text-center text-xs text-zinc-400">Task selesai ditampilkan di strip Done di bawah.</p>
+                    @else
+                        <p class="px-2 py-4 text-center text-xs text-zinc-400">Kosong</p>
+                    @endif
                 @endforelse
             </div>
         </section>

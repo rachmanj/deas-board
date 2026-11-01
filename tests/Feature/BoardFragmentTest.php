@@ -93,4 +93,30 @@ class BoardFragmentTest extends TestCase
         $this->assertNotSame($etagBefore, $etagAfter);
         $this->assertNotSame($bodyBefore, $second->getContent());
     }
+
+    public function test_fragment_includes_done_strip(): void
+    {
+        $user = User::factory()->create();
+        Task::create(['code' => 'CLK-1', 'title' => 'Selesai', 'status' => 'done', 'priority' => 'normal']);
+
+        $this->actingAs($user)
+            ->get('/board/fragment')
+            ->assertOk()
+            ->assertSee('id="board-done-strip"', false)
+            ->assertSee('data-done-chip', false);
+    }
+
+    public function test_version_hash_changes_when_done_task_is_added(): void
+    {
+        $user = User::factory()->create();
+        Task::create(['code' => 'CLK-1', 'title' => 'Todo task', 'status' => 'todo', 'priority' => 'normal']);
+
+        $before = $this->actingAs($user)->get('/board/version');
+
+        Task::create(['code' => 'CLK-2', 'title' => 'Baru selesai', 'status' => 'done', 'priority' => 'normal']);
+
+        $after = $this->actingAs($user)->get('/board/version');
+
+        $this->assertNotSame($before->json('hash'), $after->json('hash'));
+    }
 }
