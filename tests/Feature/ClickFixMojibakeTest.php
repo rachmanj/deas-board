@@ -18,9 +18,51 @@ class ClickFixMojibakeTest extends TestCase
         return mb_convert_encoding($correct, 'UTF-8', 'ISO-8859-1');
     }
 
+    private function cp1252Mojibake(string $correct): string
+    {
+        return mb_convert_encoding($correct, 'UTF-8', 'CP1252');
+    }
+
+    public function test_repair_production_cp1252_byte_patterns(): void
+    {
+        $cases = [
+            ["\u{00E2}\u{2020}\u{2019}", '→'],
+            ["\u{00E2}\u{20AC}\u{201D}", '—'],
+            ["\u{00E2}\u{20AC}\u{2122}", '’'],
+            ["\u{00E2}\u{20AC}\u{0153}", '“'],
+            ["\u{00E2}\u{20AC}\u{009D}", '”'],
+            ["\u{00E2}\u{20AC}\u{00A6}", '…'],
+        ];
+
+        foreach ($cases as [$broken, $expected]) {
+            $this->assertSame($expected, Mojibake::repair($broken), 'hex before: '.bin2hex($broken));
+            $fixed = Mojibake::repair($broken);
+            $this->assertSame($expected, $fixed, 'hex after: '.bin2hex((string) $fixed));
+        }
+    }
+
+    public function test_repair_production_mixed_sentence_with_emoji(): void
+    {
+        $input = 'Alur: A '.$this->cp1252Mojibake('→').' B '.$this->cp1252Mojibake('—').' selesai ✅';
+        $expected = 'Alur: A → B — selesai ✅';
+
+        $this->assertSame($expected, Mojibake::repair($input));
+    }
+
+    public function test_repair_leaves_correct_utf8_arrow_unchanged(): void
+    {
+        $value = 'Sudah benar → tanpa mojibake';
+
+        $result = Mojibake::repairWithStatus($value);
+
+        $this->assertSame('none', $result['action']);
+        $this->assertSame($value, $result['value']);
+    }
+
     public function test_repair_reverses_common_double_encoding_sequences(): void
     {
         $this->assertSame('→', Mojibake::repair($this->brokenUtf8('→')));
+        $this->assertSame('→', Mojibake::repair($this->cp1252Mojibake('→')));
         $this->assertSame('—', Mojibake::repair($this->brokenUtf8('—')));
         $this->assertSame('’', Mojibake::repair($this->brokenUtf8('’')));
         $this->assertSame('“', Mojibake::repair($this->brokenUtf8('“')));
@@ -201,7 +243,7 @@ class ClickFixMojibakeTest extends TestCase
 
     public function test_dry_run_reports_skipped_rows_with_remaining_pattern_reason(): void
     {
-        $unmapped = "\u{00E2}\u{0080}\u{009E}";
+        $unmapped = "\u{00E2}\u{0080}\u{00FF}";
         Task::create([
             'code' => 'CLK-SKIP',
             'title' => 'Campur 🎉 '.$unmapped.' teks',
