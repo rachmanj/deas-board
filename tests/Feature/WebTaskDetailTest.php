@@ -73,9 +73,45 @@ class WebTaskDetailTest extends TestCase
             ->getContent();
 
         $this->assertStringContainsString('max-w-[72ch]', $html);
-        $this->assertStringContainsString('prose prose-board', $html);
+        $this->assertStringContainsString('prose prose-invert prose-board max-w-none text-sm text-zinc-300', $html);
         $this->assertMatchesRegularExpression('/<ul[^>]*>.*<li/s', $html);
         $this->assertMatchesRegularExpression('/<ol[^>]*>.*<li/s', $html);
+    }
+
+    public function test_detail_markdown_containers_include_prose_invert_on_description_and_comments(): void
+    {
+        $user = $this->user();
+        $task = Task::create([
+            'code' => 'CLK-INV',
+            'title' => 'Invert prose',
+            'description_md' => '**tebal**',
+            'status' => 'todo',
+            'priority' => 'normal',
+        ]);
+        TaskComment::create([
+            'task_id' => $task->id,
+            'body_md' => 'Komentar **markdown**',
+            'author_type' => User::class,
+            'author_id' => $user->id,
+        ]);
+
+        $html = $this->actingAs($user)
+            ->get(route('tasks.show', $task))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertSame(2, substr_count($html, 'prose-invert'));
+        $this->assertSame(2, substr_count($html, 'prose-board'));
+    }
+
+    public function test_app_css_defines_prose_board_without_utility_directive(): void
+    {
+        $css = file_get_contents(base_path('resources/css/app.css'));
+
+        $this->assertIsString($css);
+        $this->assertStringNotContainsString('@utility prose-board', $css);
+        $this->assertMatchesRegularExpression('/\.prose-board\s*\{/', $css);
+        $this->assertStringContainsString('--tw-prose-body:', $css);
     }
 
     public function test_detail_shows_placeholder_when_description_empty(): void

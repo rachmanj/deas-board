@@ -12,19 +12,104 @@
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
-@utility prose-board {
-    @apply prose prose-invert max-w-none text-sm text-zinc-300;
-    @apply prose-p:leading-relaxed prose-p:my-4;
-    @apply prose-headings:text-zinc-100 prose-h2:mt-8 prose-h2:mb-3 prose-h3:mt-6 prose-h3:mb-2;
-    @apply prose-ul:my-4 prose-ul:list-disc prose-ul:pl-6;
-    @apply prose-ol:my-4 prose-ol:list-decimal prose-ol:pl-6;
-    @apply prose-li:my-1.5 prose-li:marker:text-zinc-400;
-    @apply prose-strong:text-zinc-100 prose-strong:font-semibold;
-    @apply prose-code:rounded prose-code:bg-zinc-800/60 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-zinc-200 prose-code:break-words prose-code:before:content-none prose-code:after:content-none;
-    @apply prose-pre:overflow-x-auto prose-pre:rounded-lg prose-pre:border prose-pre:border-zinc-800 prose-pre:bg-zinc-950;
-    @apply prose-a:text-teal-400 prose-a:no-underline hover:prose-a:text-teal-300 hover:prose-a:underline;
-    @apply prose-blockquote:border-l-teal-500 prose-blockquote:border-l-4 prose-blockquote:pl-4 prose-blockquote:text-zinc-400 prose-blockquote:not-italic;
-    @apply prose-table:block prose-table:overflow-x-auto prose-table:max-w-full;
-    @apply prose-th:border prose-th:border-zinc-700 prose-th:px-3 prose-th:py-2;
-    @apply prose-td:border prose-td:border-zinc-800 prose-td:px-3 prose-td:py-2;
+.prose-board {
+    --tw-prose-body: #d4d4d8;
+    --tw-prose-bold: #f4f4f5;
+    --tw-prose-headings: #f4f4f5;
+    --tw-prose-counters: #a1a1aa;
+    --tw-prose-bullets: #a1a1aa;
+    --tw-prose-quotes: #a1a1aa;
+    --tw-prose-quote-borders: #27272a;
+    --tw-prose-code: #e4e4e7;
+    --tw-prose-pre-code: #e4e4e7;
+    --tw-prose-pre-bg: #09090b;
+    --tw-prose-links: #2dd4bf;
+    --tw-prose-hr: #27272a;
+    --tw-prose-th-borders: #27272a;
+    --tw-prose-td-borders: #27272a;
+    max-width: none;
+    font-size: 0.875rem;
+    line-height: 1.7142857;
+    color: #d4d4d8;
+}
+
+.prose-board p {
+    line-height: 1.75;
+    margin: 1rem 0;
+}
+
+.prose-board ul,
+.prose-board ol {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+    list-style-position: outside;
+}
+
+.prose-board ul {
+    list-style: disc;
+}
+
+.prose-board ol {
+    list-style: decimal;
+}
+
+.prose-board li {
+    margin: 0.375rem 0;
+}
+
+.prose-board h2 {
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.prose-board h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.prose-board code {
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-size: 0.875em;
+    word-break: break-word;
+    background-color: rgba(39, 39, 42, 0.6);
+}
+
+.prose-board pre {
+    overflow-x: auto;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #27272a;
+}
+
+.prose-board blockquote {
+    border-left: 4px solid #14b8a6;
+    padding-left: 1rem;
+    color: #a1a1aa;
+    font-style: normal;
+}
+
+.prose-board a {
+    text-decoration: none;
+}
+
+.prose-board a:hover {
+    text-decoration: underline;
+}
+
+.prose-board table {
+    display: block;
+    overflow-x: auto;
+    max-width: 100%;
+    border-collapse: collapse;
+}
+
+.prose-board th,
+.prose-board td {
+    border: 1px solid #27272a;
+    padding: 0.5rem 0.75rem;
 }

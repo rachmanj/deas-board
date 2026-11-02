@@ -44,7 +44,7 @@
 
                     <h3 class="mt-4 text-xs font-medium uppercase tracking-wide text-zinc-500">Deskripsi</h3>
                     @if($task->description_md)
-                        <div class="prose prose-board mt-4 break-words">
+                        <div class="prose prose-invert prose-board max-w-none text-sm text-zinc-300 mt-4 break-words">
                             {!! \Illuminate\Support\Str::markdown($task->description_md) !!}
                         </div>
                     @else

@@ -30,7 +30,7 @@
     @if($isDeleted)
         <p class="text-sm italic text-zinc-400">Komentar ini telah dihapus.</p>
     @else
-        <div class="prose prose-board break-words">
+        <div class="prose prose-invert prose-board max-w-none text-sm text-zinc-300 break-words">
             {!! \Illuminate\Support\Str::markdown($comment->body_md) !!}
         </div>
 
