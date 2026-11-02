@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@plugin "@tailwindcss/typography";
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
@@ -8,4 +10,21 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+@utility prose-board {
+    @apply prose prose-invert max-w-none text-sm text-zinc-300;
+    @apply prose-p:leading-relaxed prose-p:my-4;
+    @apply prose-headings:text-zinc-100 prose-h2:mt-8 prose-h2:mb-3 prose-h3:mt-6 prose-h3:mb-2;
+    @apply prose-ul:my-4 prose-ul:list-disc prose-ul:pl-6;
+    @apply prose-ol:my-4 prose-ol:list-decimal prose-ol:pl-6;
+    @apply prose-li:my-1.5 prose-li:marker:text-zinc-400;
+    @apply prose-strong:text-zinc-100 prose-strong:font-semibold;
+    @apply prose-code:rounded prose-code:bg-zinc-800/60 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-zinc-200 prose-code:break-words prose-code:before:content-none prose-code:after:content-none;
+    @apply prose-pre:overflow-x-auto prose-pre:rounded-lg prose-pre:border prose-pre:border-zinc-800 prose-pre:bg-zinc-950;
+    @apply prose-a:text-teal-400 prose-a:no-underline hover:prose-a:text-teal-300 hover:prose-a:underline;
+    @apply prose-blockquote:border-l-teal-500 prose-blockquote:border-l-4 prose-blockquote:pl-4 prose-blockquote:text-zinc-400 prose-blockquote:not-italic;
+    @apply prose-table:block prose-table:overflow-x-auto prose-table:max-w-full;
+    @apply prose-th:border prose-th:border-zinc-700 prose-th:px-3 prose-th:py-2;
+    @apply prose-td:border prose-td:border-zinc-800 prose-td:px-3 prose-td:py-2;
 }

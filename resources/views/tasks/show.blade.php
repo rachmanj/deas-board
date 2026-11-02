@@ -21,213 +21,216 @@
 @endphp
 
 @section('content')
-    <div class="mb-4">
-        <a href="{{ route('tasks.index') }}" class="text-sm text-teal-500 hover:text-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
-            ← Kembali ke daftar
-        </a>
-    </div>
-
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start">
-        <div class="min-w-0 flex-1 space-y-4">
-            <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4 sm:p-6">
-                <p class="font-mono text-xs text-zinc-400">{{ $task->code }}</p>
-                <h2 class="mt-1 text-xl font-semibold text-zinc-100">{{ $task->title }}</h2>
-
-                @if($task->labels->isNotEmpty())
-                    <div class="mt-3 flex flex-wrap gap-2">
-                        @foreach($task->labels as $label)
-                            <span class="rounded-full border border-zinc-700 bg-zinc-950 px-2.5 py-0.5 text-xs text-zinc-300">{{ $label->name }}</span>
-                        @endforeach
-                    </div>
-                @endif
-
-                @if($task->description_md)
-                    <div class="prose prose-invert mt-4 max-w-none text-sm">
-                        {!! \Illuminate\Support\Str::markdown($task->description_md) !!}
-                    </div>
-                @else
-                    <p class="mt-4 text-sm text-zinc-400">Tidak ada deskripsi.</p>
-                @endif
-            </div>
-
-            @php
-                $taskTabUrl = fn (string $tab) => route('tasks.show', ['task' => $task, 'tab' => $tab]);
-                $tabLinkClass = fn (string $tab) => $activeTab === $tab
-                    ? 'border-b-2 border-teal-500 text-teal-500'
-                    : 'text-zinc-400 hover:text-zinc-200';
-            @endphp
-            <div class="rounded-xl border border-zinc-800 bg-zinc-900" id="diskusi">
-                <div class="flex flex-wrap border-b border-zinc-800" role="tablist">
-                    <a href="{{ $taskTabUrl('diskusi') }}" role="tab"
-                       aria-selected="{{ $activeTab === 'diskusi' ? 'true' : 'false' }}"
-                       class="min-h-11 sm:min-h-10 px-4 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500/60 {{ $tabLinkClass('diskusi') }}">
-                        Diskusi
-                    </a>
-                    <a href="{{ $taskTabUrl('status') }}" role="tab"
-                       aria-selected="{{ $activeTab === 'status' ? 'true' : 'false' }}"
-                       class="min-h-11 sm:min-h-10 inline-flex items-center px-4 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500/60 {{ $tabLinkClass('status') }}">
-                        Riwayat status
-                    </a>
-                    <a href="{{ $taskTabUrl('perubahan') }}" role="tab"
-                       aria-selected="{{ $activeTab === 'perubahan' ? 'true' : 'false' }}"
-                       class="min-h-11 sm:min-h-10 inline-flex items-center px-4 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500/60 {{ $tabLinkClass('perubahan') }}">
-                        Riwayat perubahan
-                    </a>
-                </div>
-
-                <div class="p-4 sm:p-6">
-                    <div role="tabpanel" class="space-y-4" @if($activeTab !== 'diskusi') hidden @endif>
-                        @if($errors->any())
-                            <div class="rounded-lg border border-red-900/50 bg-red-950/40 px-4 py-3 text-sm text-red-300" role="alert">
-                                <ul class="list-inside list-disc">
-                                    @foreach($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-
-                        @if($topLevelComments->isEmpty())
-                            <p class="text-sm text-zinc-400">Belum ada komentar. Jadilah yang pertama menulis di diskusi ini.</p>
-                        @else
-                            <div class="space-y-4">
-                                @foreach($topLevelComments as $comment)
-                                    @include('partials.comment-item', [
-                                        'comment' => $comment,
-                                        'task' => $task,
-                                        'allComments' => $allComments,
-                                        'depth' => 0,
-                                    ])
-                                @endforeach
-                            </div>
-                        @endif
-
-                        <form method="POST" action="{{ route('tasks.comments.store', $task) }}" class="space-y-2 border-t border-zinc-800 pt-4"
-                              x-data="submitForm('Mengirim...')" @submit="onFormSubmit">
-                            @csrf
-                            <input type="hidden" name="form_nonce" value="{{ $commentFormNonce }}">
-                            <label for="new-comment" class="block text-sm font-medium text-zinc-300">Tulis komentar</label>
-                            @include('partials.mention-textarea', [
-                                'id' => 'new-comment',
-                                'name' => 'body_md',
-                                'rows' => 4,
-                                'placeholder' => 'Markdown didukung. Ketik @ untuk menyebut sesi atau pengguna.',
-                                'required' => true,
-                                'value' => old('body_md'),
-                            ])
-                            <button type="submit" :disabled="processing"
-                                    class="inline-flex min-h-11 sm:min-h-10 items-center justify-center rounded-xl bg-teal-500/90 px-3.5 text-center text-sm font-medium text-zinc-950 shadow-sm hover:bg-teal-500 active:bg-teal-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900 disabled:opacity-60"
-                                    data-submit-label="Kirim komentar"
-                                    x-text="buttonText()">
-                                Kirim komentar
-                            </button>
-                        </form>
-                    </div>
-
-                    <div role="tabpanel" @if($activeTab !== 'status') hidden @endif>
-                        @if($updates->isEmpty())
-                            <p class="text-sm text-zinc-400">Belum ada perubahan status.</p>
-                        @else
-                            <ul class="divide-y divide-zinc-800 text-sm">
-                                @foreach($updates as $update)
-                                    <li class="py-3">
-                                        <div class="flex flex-wrap gap-2 text-zinc-300">
-                                            <span>{{ $statusLabels[$update->from_status] ?? $update->from_status }}</span>
-                                            <span class="text-zinc-400">→</span>
-                                            <span>{{ $statusLabels[$update->to_status] ?? $update->to_status }}</span>
-                                        </div>
-                                        @if($update->note)
-                                            <p class="mt-1 text-zinc-400">{{ $update->note }}</p>
-                                        @endif
-                                        @if($update->evidence)
-                                            <p class="mt-1 text-xs text-zinc-400">Bukti: {{ $update->evidence }}</p>
-                                        @endif
-                                        <p class="mt-1 text-xs text-zinc-400">
-                                            {{ $update->created_at?->format('d M Y H:i') }}
-                                            · {{ ActorLabel::label($update->actor_type, $update->actor_id) }}
-                                        </p>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @endif
-                    </div>
-
-                    <div role="tabpanel" id="riwayat-perubahan" @if($activeTab !== 'perubahan') hidden @endif>
-                        @if($activityLogs->isEmpty())
-                            <p class="text-sm text-zinc-400">Belum ada aktivitas tercatat.</p>
-                        @else
-                            <ul class="divide-y divide-zinc-800 text-sm">
-                                @foreach($activityLogs as $log)
-                                    <li class="py-3">
-                                        <p class="text-zinc-300">
-                                            <span class="font-mono text-xs text-teal-500/90">{{ $log->action }}</span>
-                                            · {{ $formatLogChanges($log) }}
-                                        </p>
-                                        <p class="mt-1 text-xs text-zinc-400">
-                                            {{ $log->created_at?->format('d M Y H:i') }}
-                                            · {{ ActorLabel::label($log->actor_type, $log->actor_id) }}
-                                        </p>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @endif
-                    </div>
-                </div>
-            </div>
+    <div class="overflow-x-hidden">
+        <div class="mb-4">
+            <a href="{{ route('tasks.index') }}" class="text-sm text-teal-500 hover:text-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+                ← Kembali ke daftar
+            </a>
         </div>
 
-        <aside class="w-full shrink-0 rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-sm lg:w-72">
-            <div class="mb-4 flex items-center justify-between gap-2">
-                <h3 class="font-semibold text-zinc-100">Detail</h3>
-                <a href="{{ route('tasks.edit', $task) }}"
-                   class="inline-flex min-h-11 sm:min-h-10 items-center justify-center rounded-xl border border-zinc-800/80 px-3.5 text-xs font-medium text-teal-500 hover:bg-zinc-800/60 hover:text-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
-                    Ubah
-                </a>
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start">
+            <div class="min-w-0 max-w-[72ch] flex-1 space-y-4">
+                <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4 sm:p-6">
+                    <p class="font-mono text-xs text-zinc-400">{{ $task->code }}</p>
+                    <h2 class="mt-1 break-words text-xl font-semibold text-zinc-100">{{ $task->title }}</h2>
+
+                    @if($task->labels->isNotEmpty())
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            @foreach($task->labels as $label)
+                                <span class="break-words rounded-full border border-zinc-700 bg-zinc-950 px-2.5 py-0.5 text-xs text-zinc-300">{{ $label->name }}</span>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <h3 class="mt-4 text-xs font-medium uppercase tracking-wide text-zinc-500">Deskripsi</h3>
+                    @if($task->description_md)
+                        <div class="prose prose-board mt-4 break-words">
+                            {!! \Illuminate\Support\Str::markdown($task->description_md) !!}
+                        </div>
+                    @else
+                        <p class="mt-4 text-sm text-zinc-400">Belum ada deskripsi</p>
+                    @endif
+                </div>
+
+                @php
+                    $taskTabUrl = fn (string $tab) => route('tasks.show', ['task' => $task, 'tab' => $tab]);
+                    $tabLinkClass = fn (string $tab) => $activeTab === $tab
+                        ? 'border-b-2 border-teal-500 text-teal-500'
+                        : 'text-zinc-400 hover:text-zinc-200';
+                @endphp
+                <div class="rounded-xl border border-zinc-800 bg-zinc-900" id="diskusi">
+                    <div class="flex flex-wrap border-b border-zinc-800" role="tablist">
+                        <a href="{{ $taskTabUrl('diskusi') }}" role="tab"
+                           aria-selected="{{ $activeTab === 'diskusi' ? 'true' : 'false' }}"
+                           class="min-h-11 sm:min-h-10 px-4 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500/60 {{ $tabLinkClass('diskusi') }}">
+                            Diskusi
+                        </a>
+                        <a href="{{ $taskTabUrl('status') }}" role="tab"
+                           aria-selected="{{ $activeTab === 'status' ? 'true' : 'false' }}"
+                           class="min-h-11 sm:min-h-10 inline-flex items-center px-4 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500/60 {{ $tabLinkClass('status') }}">
+                            Riwayat status
+                        </a>
+                        <a href="{{ $taskTabUrl('perubahan') }}" role="tab"
+                           aria-selected="{{ $activeTab === 'perubahan' ? 'true' : 'false' }}"
+                           class="min-h-11 sm:min-h-10 inline-flex items-center px-4 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500/60 {{ $tabLinkClass('perubahan') }}">
+                            Riwayat perubahan
+                        </a>
+                    </div>
+
+                    <div class="p-4 sm:p-6">
+                        <div role="tabpanel" class="space-y-4" @if($activeTab !== 'diskusi') hidden @endif>
+                            @if($errors->any())
+                                <div class="rounded-lg border border-red-900/50 bg-red-950/40 px-4 py-3 text-sm text-red-300" role="alert">
+                                    <ul class="list-inside list-disc">
+                                        @foreach($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+
+                            @if($topLevelComments->isEmpty())
+                                <p class="text-sm text-zinc-400">Belum ada komentar. Jadilah yang pertama menulis di diskusi ini.</p>
+                            @else
+                                <div class="space-y-4">
+                                    @foreach($topLevelComments as $comment)
+                                        @include('partials.comment-item', [
+                                            'comment' => $comment,
+                                            'task' => $task,
+                                            'allComments' => $allComments,
+                                            'depth' => 0,
+                                        ])
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            <form method="POST" action="{{ route('tasks.comments.store', $task) }}" class="space-y-2 border-t border-zinc-800 pt-4"
+                                  x-data="submitForm('Mengirim...')" @submit="onFormSubmit">
+                                @csrf
+                                <input type="hidden" name="form_nonce" value="{{ $commentFormNonce }}">
+                                <label for="new-comment" class="block text-sm font-medium text-zinc-300">Tulis komentar</label>
+                                @include('partials.mention-textarea', [
+                                    'id' => 'new-comment',
+                                    'name' => 'body_md',
+                                    'rows' => 4,
+                                    'placeholder' => 'Markdown didukung. Ketik @ untuk menyebut sesi atau pengguna.',
+                                    'required' => true,
+                                    'value' => old('body_md'),
+                                ])
+                                <button type="submit" :disabled="processing"
+                                        class="inline-flex min-h-11 sm:min-h-10 items-center justify-center rounded-xl bg-teal-500/90 px-3.5 text-center text-sm font-medium text-zinc-950 shadow-sm hover:bg-teal-500 active:bg-teal-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900 disabled:opacity-60"
+                                        data-submit-label="Kirim komentar"
+                                        x-text="buttonText()">
+                                    Kirim komentar
+                                </button>
+                            </form>
+                        </div>
+
+                        <div role="tabpanel" @if($activeTab !== 'status') hidden @endif>
+                            @if($updates->isEmpty())
+                                <p class="text-sm text-zinc-400">Belum ada perubahan status.</p>
+                            @else
+                                <ul class="divide-y divide-zinc-800 text-sm">
+                                    @foreach($updates as $update)
+                                        <li class="py-3">
+                                            <div class="flex flex-wrap gap-2 text-zinc-300">
+                                                <span>{{ $statusLabels[$update->from_status] ?? $update->from_status }}</span>
+                                                <span class="text-zinc-400">→</span>
+                                                <span>{{ $statusLabels[$update->to_status] ?? $update->to_status }}</span>
+                                            </div>
+                                            @if($update->note)
+                                                <p class="mt-1 break-words text-zinc-400">{{ $update->note }}</p>
+                                            @endif
+                                            @if($update->evidence)
+                                                <p class="mt-1 break-words text-xs text-zinc-400">Bukti: {{ $update->evidence }}</p>
+                                            @endif
+                                            <p class="mt-1 text-xs text-zinc-400">
+                                                {{ $update->created_at?->format('d M Y H:i') }}
+                                                · {{ ActorLabel::label($update->actor_type, $update->actor_id) }}
+                                            </p>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </div>
+
+                        <div role="tabpanel" id="riwayat-perubahan" @if($activeTab !== 'perubahan') hidden @endif>
+                            @if($activityLogs->isEmpty())
+                                <p class="text-sm text-zinc-400">Belum ada aktivitas tercatat.</p>
+                            @else
+                                <ul class="divide-y divide-zinc-800 text-sm">
+                                    @foreach($activityLogs as $log)
+                                        <li class="py-3">
+                                            <p class="break-words text-zinc-300">
+                                                <span class="font-mono text-xs text-teal-500/90">{{ $log->action }}</span>
+                                                · {{ $formatLogChanges($log) }}
+                                            </p>
+                                            <p class="mt-1 text-xs text-zinc-400">
+                                                {{ $log->created_at?->format('d M Y H:i') }}
+                                                · {{ ActorLabel::label($log->actor_type, $log->actor_id) }}
+                                            </p>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </div>
+                    </div>
+                </div>
             </div>
-            <dl class="space-y-3 text-zinc-400">
-                <div>
-                    <dt class="text-xs text-zinc-400">Status</dt>
-                    <dd class="text-zinc-200">{{ $statusLabels[$task->status] ?? $task->status }}</dd>
+
+            <aside class="w-full shrink-0 rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-sm lg:sticky lg:top-20 lg:w-72">
+                <div class="mb-4 flex items-center justify-between gap-2">
+                    <h3 class="font-semibold text-zinc-100">Detail</h3>
+                    <a href="{{ route('tasks.edit', $task) }}"
+                       class="inline-flex min-h-11 sm:min-h-10 items-center justify-center rounded-xl border border-zinc-800/80 px-3.5 text-xs font-medium text-teal-500 hover:bg-zinc-800/60 hover:text-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
+                        Ubah
+                    </a>
                 </div>
-                <div>
-                    <dt class="text-xs text-zinc-400">Prioritas</dt>
-                    <dd class="text-zinc-200">{{ $priorityLabels[$task->priority] ?? $task->priority }}</dd>
-                </div>
-                <div>
-                    <dt class="text-xs text-zinc-400">Sesi penanggung jawab</dt>
-                    <dd class="text-zinc-200">
-                        @if($task->assigneeSession)
-                            {{ $task->assigneeSession->label }} ({{ $task->assigneeSession->topic_id }})
-                        @else
-                            Belum ada
-                        @endif
-                    </dd>
-                </div>
-                <div>
-                    <dt class="text-xs text-zinc-400">Proyek</dt>
-                    <dd class="text-zinc-200">{{ $task->project?->name ?? 'Tidak ada' }}</dd>
-                </div>
-                <div>
-                    <dt class="text-xs text-zinc-400">Tenggat</dt>
-                    <dd class="text-zinc-200">{{ $task->due_date?->format('d M Y') ?? 'Tidak ada' }}</dd>
-                </div>
-                <div>
-                    <dt class="text-xs text-zinc-400">Mulai</dt>
-                    <dd class="text-zinc-200">{{ $task->start_date?->format('d M Y') ?? 'Tidak ada' }}</dd>
-                </div>
-                <div>
-                    <dt class="text-xs text-zinc-400">Referensi eksternal</dt>
-                    <dd class="break-all text-zinc-200">{{ $task->external_ref ?? 'Tidak ada' }}</dd>
-                </div>
-                <div>
-                    <dt class="text-xs text-zinc-400">Dibuat</dt>
-                    <dd class="text-zinc-200">{{ $task->created_at?->format('d M Y H:i') }}</dd>
-                </div>
-                <div>
-                    <dt class="text-xs text-zinc-400">Diperbarui</dt>
-                    <dd class="text-zinc-200">{{ $task->updated_at?->format('d M Y H:i') }}</dd>
-                </div>
-            </dl>
-        </aside>
+                <dl class="space-y-3.5">
+                    <div class="grid grid-cols-1 gap-0.5">
+                        <dt class="text-xs text-zinc-500">Status</dt>
+                        <dd class="break-words text-zinc-200">{{ $statusLabels[$task->status] ?? $task->status }}</dd>
+                    </div>
+                    <div class="grid grid-cols-1 gap-0.5">
+                        <dt class="text-xs text-zinc-500">Prioritas</dt>
+                        <dd class="break-words text-zinc-200">{{ $priorityLabels[$task->priority] ?? $task->priority }}</dd>
+                    </div>
+                    <div class="grid grid-cols-1 gap-0.5">
+                        <dt class="text-xs text-zinc-500">Sesi penanggung jawab</dt>
+                        <dd class="break-words text-zinc-200">
+                            @if($task->assigneeSession)
+                                {{ $task->assigneeSession->label }} ({{ $task->assigneeSession->topic_id }})
+                            @else
+                                Belum ada
+                            @endif
+                        </dd>
+                    </div>
+                    <div class="grid grid-cols-1 gap-0.5">
+                        <dt class="text-xs text-zinc-500">Proyek</dt>
+                        <dd class="break-words text-zinc-200">{{ $task->project?->name ?? 'Tidak ada' }}</dd>
+                    </div>
+                    <div class="grid grid-cols-1 gap-0.5">
+                        <dt class="text-xs text-zinc-500">Tenggat</dt>
+                        <dd class="break-words text-zinc-200">{{ $task->due_date?->format('d M Y') ?? 'Tidak ada' }}</dd>
+                    </div>
+                    <div class="grid grid-cols-1 gap-0.5">
+                        <dt class="text-xs text-zinc-500">Mulai</dt>
+                        <dd class="break-words text-zinc-200">{{ $task->start_date?->format('d M Y') ?? 'Tidak ada' }}</dd>
+                    </div>
+                    <div class="grid grid-cols-1 gap-0.5">
+                        <dt class="text-xs text-zinc-500">Referensi eksternal</dt>
+                        <dd class="break-words text-zinc-200">{{ $task->external_ref ?? 'Tidak ada' }}</dd>
+                    </div>
+                    <div class="grid grid-cols-1 gap-0.5">
+                        <dt class="text-xs text-zinc-500">Dibuat</dt>
+                        <dd class="break-words text-zinc-200">{{ $task->created_at?->format('d M Y H:i') }}</dd>
+                    </div>
+                    <div class="grid grid-cols-1 gap-0.5">
+                        <dt class="text-xs text-zinc-500">Diperbarui</dt>
+                        <dd class="break-words text-zinc-200">{{ $task->updated_at?->format('d M Y H:i') }}</dd>
+                    </div>
+                </dl>
+            </aside>
+        </div>
     </div>
 @endsection

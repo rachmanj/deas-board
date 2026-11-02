@@ -56,6 +56,44 @@ class WebTaskDetailTest extends TestCase
             ->assertSee('Komentar awal');
     }
 
+    public function test_detail_markdown_uses_prose_and_reading_width(): void
+    {
+        $user = $this->user();
+        $task = Task::create([
+            'code' => 'CLK-MD',
+            'title' => 'Markdown',
+            'description_md' => "- satu\n- dua\n\n1. pertama\n2. kedua",
+            'status' => 'todo',
+            'priority' => 'normal',
+        ]);
+
+        $html = $this->actingAs($user)
+            ->get(route('tasks.show', $task))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString('max-w-[72ch]', $html);
+        $this->assertStringContainsString('prose prose-board', $html);
+        $this->assertMatchesRegularExpression('/<ul[^>]*>.*<li/s', $html);
+        $this->assertMatchesRegularExpression('/<ol[^>]*>.*<li/s', $html);
+    }
+
+    public function test_detail_shows_placeholder_when_description_empty(): void
+    {
+        $user = $this->user();
+        $task = Task::create([
+            'code' => 'CLK-EMPTY',
+            'title' => 'Tanpa deskripsi',
+            'status' => 'todo',
+            'priority' => 'normal',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('tasks.show', $task))
+            ->assertOk()
+            ->assertSee('Belum ada deskripsi');
+    }
+
     public function test_new_comment_is_saved_and_shown(): void
     {
         $user = $this->user();
