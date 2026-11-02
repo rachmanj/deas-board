@@ -4,7 +4,7 @@ namespace App\Support;
 
 final class Mojibake
 {
-    public const DETECTION_PATTERN = '/â[\x{2020}\x{0086}\x{0080}].|â€[\x{0094}\x{0099}\x{009c}\x{009d}]|â€œ|â€™|â€.|Ã©|Ã¢/u';
+    public const DETECTION_PATTERN = '/â[\x{2020}\x{0086}\x{0080}].|â€[\x{0094}\x{0099}\x{009c}\x{009d}]|â€œ|â€™|â€.|Ã©|Ã¢|Ã¨|Ã¡|Ã³|Ã¼|Ã±|Ã‰|Ã§|Ã´/u';
 
     /**
      * @var array<string, string>
@@ -24,6 +24,10 @@ final class Mojibake
         'Ã³' => 'ó',
         'Ã¼' => 'ü',
         'Ã±' => 'ñ',
+        'Ã¢' => 'â',
+        'Ã´' => 'ô',
+        'Ã§' => 'ç',
+        'Ã‰' => 'É',
     ];
 
     /**
@@ -49,63 +53,77 @@ final class Mojibake
     }
 
     /**
-     * @return array{value: ?string, action: 'none'|'repaired'|'skipped', skip_reason: ?string}
+     * @return array{
+     *     value: ?string,
+     *     action: 'none'|'repaired'|'skipped',
+     *     skip_reason: ?string,
+     *     unrecognized_remainder: bool
+     * }
      */
     public static function repairWithStatus(?string $value): array
     {
+        $none = [
+            'value' => $value,
+            'action' => 'none',
+            'skip_reason' => null,
+            'unrecognized_remainder' => false,
+        ];
+
         if ($value === null || $value === '') {
-            return ['value' => $value, 'action' => 'none', 'skip_reason' => null];
+            return $none;
         }
 
         if (! self::containsPattern($value)) {
-            return ['value' => $value, 'action' => 'none', 'skip_reason' => null];
+            return $none;
         }
 
-        $chars = self::utf8Characters($value);
-        if ($chars === null) {
+        if (! mb_check_encoding($value, 'UTF-8')) {
             return [
                 'value' => $value,
                 'action' => 'skipped',
                 'skip_reason' => 'string bukan UTF-8 valid',
+                'unrecognized_remainder' => false,
             ];
-        }
-
-        foreach ($chars as $char) {
-            if (mb_ord($char) > 255) {
-                return [
-                    'value' => $value,
-                    'action' => 'skipped',
-                    'skip_reason' => 'mengandung karakter di luar Latin-1 (code point di atas 255)',
-                ];
-            }
-        }
-
-        $bytes = '';
-        foreach ($chars as $char) {
-            $bytes .= chr(mb_ord($char));
-        }
-
-        if (mb_check_encoding($bytes, 'UTF-8') && $bytes !== $value) {
-            return ['value' => $bytes, 'action' => 'repaired', 'skip_reason' => null];
         }
 
         $mapped = strtr($value, self::EXPLICIT_MAP);
-        if ($mapped !== $value) {
-            return ['value' => $mapped, 'action' => 'repaired', 'skip_reason' => null];
+        $working = $mapped;
+        $changed = $mapped !== $value;
+
+        if (self::containsPattern($working) && self::isAllLatin1($working)) {
+            $reversed = self::tryByteReversal($working);
+            if ($reversed !== null) {
+                $working = $reversed;
+                $changed = true;
+            }
         }
 
-        if (! mb_check_encoding($bytes, 'UTF-8')) {
+        if ($changed && $working !== $value) {
             return [
-                'value' => $value,
-                'action' => 'skipped',
-                'skip_reason' => 'pembalikan byte menghasilkan UTF-8 tidak valid',
+                'value' => $working,
+                'action' => 'repaired',
+                'skip_reason' => null,
+                'unrecognized_remainder' => self::containsPattern($working),
             ];
+        }
+
+        if (! $changed && self::isAllLatin1($value)) {
+            $reversed = self::tryByteReversal($value);
+            if ($reversed !== null) {
+                return [
+                    'value' => $reversed,
+                    'action' => 'repaired',
+                    'skip_reason' => null,
+                    'unrecognized_remainder' => self::containsPattern($reversed),
+                ];
+            }
         }
 
         return [
             'value' => $value,
             'action' => 'skipped',
-            'skip_reason' => 'tidak bisa dibalik dengan aman',
+            'skip_reason' => self::remainingPatternReason($value),
+            'unrecognized_remainder' => false,
         ];
     }
 
@@ -129,17 +147,47 @@ final class Mojibake
         return mb_substr($value, 0, $max).'…';
     }
 
-    /**
-     * @return list<string>|null
-     */
-    private static function utf8Characters(string $value): ?array
+    public static function remainingPatternReason(string $value): string
     {
-        if (! mb_check_encoding($value, 'UTF-8')) {
+        if (preg_match(self::DETECTION_PATTERN, $value, $matches)) {
+            return 'poli mojibake tersisa: '.self::sample($matches[0], 24);
+        }
+
+        return 'poli mojibake tersisa tidak dikenali';
+    }
+
+    private static function isAllLatin1(string $value): bool
+    {
+        $chars = preg_split('//u', $value, -1, PREG_SPLIT_NO_EMPTY);
+        if (! is_array($chars)) {
+            return false;
+        }
+
+        foreach ($chars as $char) {
+            if (mb_ord($char) > 255) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static function tryByteReversal(string $value): ?string
+    {
+        $chars = preg_split('//u', $value, -1, PREG_SPLIT_NO_EMPTY);
+        if (! is_array($chars)) {
             return null;
         }
 
-        $chars = preg_split('//u', $value, -1, PREG_SPLIT_NO_EMPTY);
+        $bytes = '';
+        foreach ($chars as $char) {
+            $bytes .= chr(mb_ord($char));
+        }
 
-        return is_array($chars) ? $chars : null;
+        if (! mb_check_encoding($bytes, 'UTF-8') || $bytes === $value) {
+            return null;
+        }
+
+        return $bytes;
     }
 }

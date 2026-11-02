@@ -37,10 +37,11 @@ class ClickFixMojibakeCommand extends Command
         foreach ($scan['table_stats'] as $table => $stats) {
             $this->line('');
             $this->info($table.sprintf(
-                ' — terdeteksi: %d, akan diperbaiki: %d, dilewati: %d',
+                ' — terdeteksi: %d, diperbaiki: %d, dilewati: %d, sisa tidak dikenali: %d',
                 $stats['detected'],
-                $stats['will_fix'],
-                $stats['skipped']
+                $stats['repaired'],
+                $stats['skipped'],
+                $stats['unrecognized_remainder']
             ));
 
             $samples = array_slice($scan['updates'][$table] ?? [], 0, 3);
@@ -102,7 +103,7 @@ class ClickFixMojibakeCommand extends Command
      * @return array{
      *     updates: array<string, list<array{id: int|string, changes: array<string, array{before: string, after: string}>, changes_flat: array<string, string>}>>,
      *     skipped: array<string, list<array{id: int|string, columns: array<string, array{value: string, skip_reason: string}>}>>,
-     *     table_stats: array<string, array{detected: int, will_fix: int, skipped: int}>
+     *     table_stats: array<string, array{detected: int, repaired: int, skipped: int, unrecognized_remainder: int}>
      * }
      */
     private function scan(): array
@@ -126,7 +127,12 @@ class ClickFixMojibakeCommand extends Command
                 continue;
             }
 
-            $tableStats[$table] = ['detected' => 0, 'will_fix' => 0, 'skipped' => 0];
+            $tableStats[$table] = [
+                'detected' => 0,
+                'repaired' => 0,
+                'skipped' => 0,
+                'unrecognized_remainder' => 0,
+            ];
 
             $query = DB::table($table)->select(array_merge(['id'], $columns));
 
@@ -135,6 +141,7 @@ class ClickFixMojibakeCommand extends Command
                 $changesFlat = [];
                 $skippedColumns = [];
                 $rowDetected = false;
+                $rowHasRemainder = false;
 
                 foreach ($columns as $column) {
                     $value = $record->{$column};
@@ -148,6 +155,9 @@ class ClickFixMojibakeCommand extends Command
                     if ($result['action'] === 'repaired' && $result['value'] !== $value) {
                         $changes[$column] = ['before' => $value, 'after' => $result['value']];
                         $changesFlat[$column] = $result['value'];
+                        if ($result['unrecognized_remainder']) {
+                            $rowHasRemainder = true;
+                        }
                     } elseif ($result['action'] === 'skipped') {
                         $skippedColumns[$column] = [
                             'value' => $value,
@@ -163,12 +173,16 @@ class ClickFixMojibakeCommand extends Command
                 $tableStats[$table]['detected']++;
 
                 if ($changes !== []) {
-                    $tableStats[$table]['will_fix']++;
+                    $tableStats[$table]['repaired']++;
                     $updates[$table][] = [
                         'id' => $record->id,
                         'changes' => $changes,
                         'changes_flat' => $changesFlat,
                     ];
+                }
+
+                if ($rowHasRemainder) {
+                    $tableStats[$table]['unrecognized_remainder']++;
                 }
 
                 if ($skippedColumns !== []) {

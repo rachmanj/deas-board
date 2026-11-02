@@ -30,26 +30,43 @@ class ClickFixMojibakeTest extends TestCase
         $this->assertSame('Langkah → selesai — catatan ’', Mojibake::repair($mixed));
     }
 
-    public function test_repair_skips_values_with_non_latin1_characters(): void
+    public function test_repair_mixed_correct_and_broken_sequences_in_one_string(): void
+    {
+        $input = 'sudah benar → dan rusak '.$this->brokenUtf8('—').' juga '.$this->brokenUtf8('→');
+        $expected = 'sudah benar → dan rusak — juga →';
+
+        $this->assertSame($expected, Mojibake::repair($input));
+    }
+
+    public function test_repair_preserves_emoji_while_fixing_mojibake(): void
     {
         $broken = $this->brokenUtf8('→');
-        $value = 'Emoji 🎉 '.$broken;
+        $value = 'Emoji 🎉 '.$broken.' selesai';
 
         $result = Mojibake::repairWithStatus($value);
 
-        $this->assertSame('skipped', $result['action']);
-        $this->assertSame($value, $result['value']);
-        $this->assertStringContainsString('255', $result['skip_reason'] ?? '');
+        $this->assertSame('repaired', $result['action']);
+        $this->assertSame('Emoji 🎉 → selesai', $result['value']);
+        $this->assertFalse($result['unrecognized_remainder']);
     }
 
-    public function test_repair_skips_cjk_without_mutation(): void
+    public function test_repair_fixes_mojibake_alongside_cjk_without_mutation(): void
     {
         $value = 'Catatan 中文 dengan '.$this->brokenUtf8('→');
 
         $result = Mojibake::repairWithStatus($value);
 
-        $this->assertSame('skipped', $result['action']);
-        $this->assertSame($value, $result['value']);
+        $this->assertSame('repaired', $result['action']);
+        $this->assertSame('Catatan 中文 dengan →', $result['value']);
+    }
+
+    public function test_second_repair_pass_makes_no_changes(): void
+    {
+        $fixed = Mojibake::repair($this->brokenUtf8('→ dan —'));
+        $again = Mojibake::repairWithStatus($fixed);
+
+        $this->assertSame('none', $again['action']);
+        $this->assertSame($fixed, $again['value']);
     }
 
     public function test_dry_run_reports_without_writing_and_shows_real_characters(): void
@@ -64,7 +81,7 @@ class ClickFixMojibakeTest extends TestCase
 
         $this->artisan('click:fix-mojibake', ['--dry-run' => true])
             ->assertSuccessful()
-            ->expectsOutputToContain('terdeteksi: 1, akan diperbaiki: 1, dilewati: 0')
+            ->expectsOutputToContain('terdeteksi: 1, diperbaiki: 1, dilewati: 0, sisa tidak dikenali: 0')
             ->expectsOutputToContain('→ dan — faktur')
             ->doesntExpectOutputToContain('???');
 
@@ -85,6 +102,33 @@ class ClickFixMojibakeTest extends TestCase
             ->assertSuccessful()
             ->expectsOutputToContain('A → B — selesai')
             ->doesntExpectOutputToContain('???');
+    }
+
+    public function test_dry_run_mixed_emoji_mojibake_and_correct_characters(): void
+    {
+        $title = '🚀 sudah benar → dan rusak '
+            .$this->brokenUtf8('—')
+            .' juga '
+            .$this->brokenUtf8('→')
+            .' 🎉';
+
+        Task::create([
+            'code' => 'CLK-MIX',
+            'title' => $title,
+            'status' => 'todo',
+            'priority' => 'normal',
+        ]);
+
+        $this->withoutMockingConsoleOutput();
+
+        $exitCode = $this->artisan('click:fix-mojibake', ['--dry-run' => true]);
+        $this->assertSame(0, $exitCode);
+
+        $output = \Illuminate\Support\Facades\Artisan::output();
+
+        $this->assertStringContainsString('🚀 sudah benar → dan rusak — juga → 🎉', $output);
+        $this->assertStringContainsString('diperbaiki: 1', $output);
+        $this->assertStringNotContainsString('???', $output);
     }
 
     public function test_apply_repairs_common_sequences_and_second_run_is_no_op(): void
@@ -155,12 +199,12 @@ class ClickFixMojibakeTest extends TestCase
         $this->assertSame('Sudah benar →', Task::query()->value('title'));
     }
 
-    public function test_dry_run_reports_skipped_rows_with_reason(): void
+    public function test_dry_run_reports_skipped_rows_with_remaining_pattern_reason(): void
     {
-        $broken = $this->brokenUtf8('→');
+        $unmapped = "\u{00E2}\u{0080}\u{009E}";
         Task::create([
             'code' => 'CLK-SKIP',
-            'title' => 'Campur 🎉 '.$broken,
+            'title' => 'Campur 🎉 '.$unmapped.' teks',
             'status' => 'todo',
             'priority' => 'normal',
         ]);
@@ -173,6 +217,6 @@ class ClickFixMojibakeTest extends TestCase
         $output = \Illuminate\Support\Facades\Artisan::output();
 
         $this->assertStringContainsString('dilewati: 1', $output);
-        $this->assertStringContainsString('alasan: mengandung karakter di luar Latin-1', $output);
+        $this->assertStringContainsString('poli mojibake tersisa', $output);
     }
 }
