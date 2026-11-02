@@ -26,27 +26,46 @@ class ClickFixMojibakeCommand extends Command
             return self::FAILURE;
         }
 
-        $updates = $this->collectUpdates();
+        $scan = $this->scan();
 
-        if ($updates === []) {
+        if ($scan['updates'] === [] && $scan['skipped'] === []) {
             $this->comment('Tidak ada baris dengan pola mojibake terdeteksi.');
 
             return self::SUCCESS;
         }
 
-        foreach ($updates as $table => $rows) {
+        foreach ($scan['table_stats'] as $table => $stats) {
             $this->line('');
-            $this->info($table.' ('.count($rows).' baris)');
+            $this->info($table.sprintf(
+                ' — terdeteksi: %d, akan diperbaiki: %d, dilewati: %d',
+                $stats['detected'],
+                $stats['will_fix'],
+                $stats['skipped']
+            ));
 
-            $samples = array_slice($rows, 0, 3);
+            $samples = array_slice($scan['updates'][$table] ?? [], 0, 3);
             foreach ($samples as $row) {
                 foreach ($row['changes'] as $column => $change) {
                     $this->line(sprintf(
-                        '  [%s id=%s] %s',
+                        '  [%s id=%s] %s → %s',
                         $column,
                         (string) $row['id'],
-                        Mojibake::sample($change['before']).' → '.Mojibake::sample($change['after'])
+                        Mojibake::sample($change['before']),
+                        Mojibake::sample($change['after'])
                     ));
+                }
+            }
+
+            $skippedSamples = array_slice($scan['skipped'][$table] ?? [], 0, 3);
+            foreach ($skippedSamples as $row) {
+                foreach ($row['columns'] as $column => $meta) {
+                    $this->line(sprintf(
+                        '  dilewati [%s id=%s] alasan: %s',
+                        $column,
+                        (string) $row['id'],
+                        $meta['skip_reason']
+                    ));
+                    $this->line('    cuplikan: '.Mojibake::sample($meta['value']));
                 }
             }
         }
@@ -55,10 +74,17 @@ class ClickFixMojibakeCommand extends Command
             return self::SUCCESS;
         }
 
+        if ($scan['updates'] === []) {
+            $this->line('');
+            $this->comment('Tidak ada baris yang aman untuk diperbaiki.');
+
+            return self::SUCCESS;
+        }
+
         $written = 0;
 
-        DB::transaction(function () use ($updates, &$written) {
-            foreach ($updates as $table => $rows) {
+        DB::transaction(function () use ($scan, &$written) {
+            foreach ($scan['updates'] as $table => $rows) {
                 foreach ($rows as $row) {
                     DB::table($table)->where('id', $row['id'])->update($row['changes_flat']);
                     $written++;
@@ -73,11 +99,17 @@ class ClickFixMojibakeCommand extends Command
     }
 
     /**
-     * @return array<string, list<array{id: int|string, changes: array<string, array{before: string, after: string}>, changes_flat: array<string, string>}>>
+     * @return array{
+     *     updates: array<string, list<array{id: int|string, changes: array<string, array{before: string, after: string}>, changes_flat: array<string, string>}>>,
+     *     skipped: array<string, list<array{id: int|string, columns: array<string, array{value: string, skip_reason: string}>}>>,
+     *     table_stats: array<string, array{detected: int, will_fix: int, skipped: int}>
+     * }
      */
-    private function collectUpdates(): array
+    private function scan(): array
     {
         $updates = [];
+        $skipped = [];
+        $tableStats = [];
 
         foreach (Mojibake::SCAN_TARGETS as $target) {
             $table = $target['table'];
@@ -94,11 +126,15 @@ class ClickFixMojibakeCommand extends Command
                 continue;
             }
 
+            $tableStats[$table] = ['detected' => 0, 'will_fix' => 0, 'skipped' => 0];
+
             $query = DB::table($table)->select(array_merge(['id'], $columns));
 
             foreach ($query->cursor() as $record) {
                 $changes = [];
                 $changesFlat = [];
+                $skippedColumns = [];
+                $rowDetected = false;
 
                 foreach ($columns as $column) {
                     $value = $record->{$column};
@@ -106,27 +142,49 @@ class ClickFixMojibakeCommand extends Command
                         continue;
                     }
 
-                    $repaired = Mojibake::repair($value);
-                    if ($repaired === $value) {
-                        continue;
-                    }
+                    $rowDetected = true;
+                    $result = Mojibake::repairWithStatus($value);
 
-                    $changes[$column] = ['before' => $value, 'after' => $repaired];
-                    $changesFlat[$column] = $repaired;
+                    if ($result['action'] === 'repaired' && $result['value'] !== $value) {
+                        $changes[$column] = ['before' => $value, 'after' => $result['value']];
+                        $changesFlat[$column] = $result['value'];
+                    } elseif ($result['action'] === 'skipped') {
+                        $skippedColumns[$column] = [
+                            'value' => $value,
+                            'skip_reason' => $result['skip_reason'] ?? 'tidak bisa dibalik dengan aman',
+                        ];
+                    }
                 }
 
-                if ($changes === []) {
+                if (! $rowDetected) {
                     continue;
                 }
 
-                $updates[$table][] = [
-                    'id' => $record->id,
-                    'changes' => $changes,
-                    'changes_flat' => $changesFlat,
-                ];
+                $tableStats[$table]['detected']++;
+
+                if ($changes !== []) {
+                    $tableStats[$table]['will_fix']++;
+                    $updates[$table][] = [
+                        'id' => $record->id,
+                        'changes' => $changes,
+                        'changes_flat' => $changesFlat,
+                    ];
+                }
+
+                if ($skippedColumns !== []) {
+                    $tableStats[$table]['skipped']++;
+                    $skipped[$table][] = [
+                        'id' => $record->id,
+                        'columns' => $skippedColumns,
+                    ];
+                }
             }
         }
 
-        return $updates;
+        return [
+            'updates' => $updates,
+            'skipped' => $skipped,
+            'table_stats' => $tableStats,
+        ];
     }
 }
