@@ -8,6 +8,7 @@ use App\Models\Session;
 use App\Models\Task;
 use App\Support\ActivityLogger;
 use App\Support\EvidenceRule;
+use App\Support\TaskDoneAt;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -157,15 +158,18 @@ class ClickImportAssignmentsCommand extends Command
                 EvidenceRule::withoutEnforcement(function () use ($item, $email, $session, $hasSessionTopic, $resolvedStatus, &$created, &$createdWithoutAssignee) {
                 $placeholder = 'tmp-'.uniqid();
 
+                $importStatus = $resolvedStatus['status'];
+
                 $task = Task::create([
                     'code' => $placeholder,
                     'title' => (string) ($item['title'] ?? 'Tanpa judul'),
                     'description_md' => $item['description'] ?? null,
-                    'status' => $resolvedStatus['status'],
+                    'status' => $importStatus,
                     'priority' => (string) ($item['priority'] ?? 'normal'),
                     'assignee_session_id' => $session?->id,
                     'source' => 'email',
                     'external_ref' => $item['external_ref'] ?? null,
+                    'done_at' => TaskDoneAt::forImportedTask($importStatus, $item['done_at'] ?? null),
                 ]);
 
                 $task->update(['code' => 'CLK-'.$task->id]);

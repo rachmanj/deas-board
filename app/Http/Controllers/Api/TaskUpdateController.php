@@ -9,6 +9,7 @@ use App\Support\ActivityLogger;
 use App\Support\Actor;
 use App\Support\ApiResponse;
 use App\Support\EvidenceRule;
+use App\Support\TaskDoneAt;
 use App\Support\TaskRules;
 use App\Support\TextNormalizer;
 use Illuminate\Http\Request;
@@ -51,9 +52,7 @@ class TaskUpdateController extends Controller
 
         if ($toStatus !== $fromStatus) {
             $task->status = $toStatus;
-            if ($toStatus === 'done' && ! $task->done_at) {
-                $task->done_at = now();
-            }
+            TaskDoneAt::sync($task, $fromStatus, $toStatus);
             $task->save();
 
             TaskController::notifyAssigneeStatusChanged($task);

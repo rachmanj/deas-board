@@ -11,6 +11,7 @@ use App\Support\ActivityLogger;
 use App\Support\Actor;
 use App\Support\ApiResponse;
 use App\Support\EvidenceRule;
+use App\Support\TaskDoneAt;
 use App\Support\TaskRules;
 use App\Support\TextNormalizer;
 use Illuminate\Http\Request;
@@ -249,10 +250,9 @@ class TaskController extends Controller
         }
         if (array_key_exists('status', $validated)) {
             $changes['status'] = ['old' => $task->status, 'new' => $validated['status']];
-            $task->status = $validated['status'];
-            if ($validated['status'] === 'done' && ! $task->done_at) {
-                $task->done_at = now();
-            }
+            $newStatus = $validated['status'];
+            $task->status = $newStatus;
+            TaskDoneAt::sync($task, $oldStatus, $newStatus);
         }
         if (array_key_exists('priority', $validated)) {
             $changes['priority'] = ['old' => $task->priority, 'new' => $validated['priority']];

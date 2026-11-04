@@ -8,6 +8,7 @@ use App\Models\Task;
 use App\Models\TaskUpdate;
 use App\Support\Actor;
 use App\Support\EvidenceRule;
+use App\Support\TaskDoneAt;
 use App\Support\TaskRules;
 use App\Support\TextNormalizer;
 use Illuminate\Http\Request;
@@ -37,9 +38,7 @@ class TaskStatusController extends Controller
             }
 
             $task->status = $newStatus;
-            if ($newStatus === 'done' && ! $task->done_at) {
-                $task->done_at = now();
-            }
+            TaskDoneAt::sync($task, $oldStatus, $newStatus);
             $task->save();
 
             TaskUpdate::create([
