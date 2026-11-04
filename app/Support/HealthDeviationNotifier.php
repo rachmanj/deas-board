@@ -19,12 +19,12 @@ class HealthDeviationNotifier
     /**
      * @return list<array{category: string, message: string, tasks: Collection<int, Task>}>
      */
-    public function pendingNotifications(Carbon $onDate, bool $force, int $limit): array
+    public function pendingNotifications(Carbon $onDate, bool $force, int $limit, ?int $doneWithoutEvidenceDays = null): array
     {
         $remaining = $limit;
         $plans = [];
 
-        foreach (HealthDeviationCategories::tasksByCategory() as $category => $tasks) {
+        foreach (HealthDeviationCategories::tasksByCategory($doneWithoutEvidenceDays) as $category => $tasks) {
             if ($remaining <= 0) {
                 break;
             }

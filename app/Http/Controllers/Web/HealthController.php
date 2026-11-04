@@ -10,6 +10,10 @@ class HealthController extends Controller
 {
     public function index(Request $request)
     {
+        $days = BoardHealth::resolveDoneWithoutEvidenceDays(
+            $request->has('days') ? (int) $request->query('days') : null
+        );
+
         $inProgressStale = BoardHealth::inProgressStaleQuery()
             ->with('assigneeSession:id,label,topic_id')
             ->orderBy('code')
@@ -20,7 +24,7 @@ class HealthController extends Controller
             ->orderBy('code')
             ->get();
 
-        $doneWithoutEvidence = BoardHealth::doneWithoutEvidence()
+        $doneWithoutEvidence = BoardHealth::doneWithoutEvidence($days)
             ->load('assigneeSession:id,label,topic_id');
 
         $todoCommitHint = BoardHealth::todoCommitHintTasks()
@@ -32,6 +36,8 @@ class HealthController extends Controller
             'doneWithoutEvidence' => $doneWithoutEvidence,
             'todoCommitHint' => $todoCommitHint,
             'pageTitle' => 'Kesehatan papan',
+            'doneWithoutEvidenceDays' => $days,
+            'doneWithoutEvidenceDayOptions' => [7, 14, 30],
         ]);
     }
 }

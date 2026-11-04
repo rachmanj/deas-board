@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Support\BoardHealth;
 use App\Support\HealthDeviationNotifier;
 use Illuminate\Console\Command;
 use Illuminate\Support\Env;
@@ -12,7 +13,8 @@ class ClickHealthNotifyCommand extends Command
     protected $signature = 'click:health-notify
                             {--dry-run : Tampilkan pesan tanpa mengirim}
                             {--force : Abaikan catatan sudah dinotifikasi hari ini}
-                            {--limit=50 : Batas task baru per eksekusi}';
+                            {--limit=50 : Batas task baru per eksekusi}
+                            {--days=7 : Ambang hari untuk kategori done tanpa bukti}';
 
     protected $description = 'Kirim notifikasi Telegram untuk penyimpangan kesehatan papan';
 
@@ -35,7 +37,9 @@ class ClickHealthNotifyCommand extends Command
             $chatId !== '' ? $chatId : null,
         );
 
-        $plans = $notifier->pendingNotifications(now(), $force, $limit);
+        $days = BoardHealth::resolveDoneWithoutEvidenceDays((int) $this->option('days'));
+
+        $plans = $notifier->pendingNotifications(now(), $force, $limit, $days);
 
         if ($dryRun) {
             foreach ($plans as $plan) {

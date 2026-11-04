@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Session;
 use App\Models\Task;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -17,14 +18,21 @@ class BoardHealth
      *     todo_commit_hint: int,
      * }
      */
-    public static function counts(): array
+    public static function counts(?int $doneWithoutEvidenceDays = null): array
     {
         return [
             'in_progress_stale' => self::inProgressStaleQuery()->count(),
             'review_stale' => self::reviewStaleQuery()->count(),
-            'done_without_evidence' => self::doneWithoutEvidence()->count(),
+            'done_without_evidence' => self::doneWithoutEvidence($doneWithoutEvidenceDays)->count(),
             'todo_commit_hint' => self::todoCommitHintTasks()->count(),
         ];
+    }
+
+    public static function resolveDoneWithoutEvidenceDays(?int $days): int
+    {
+        $days = $days ?? HealthThresholds::DONE_WITHOUT_EVIDENCE_DAYS;
+
+        return $days < 1 ? HealthThresholds::DONE_WITHOUT_EVIDENCE_DAYS : $days;
     }
 
     public static function totalDeviations(array $counts): int
@@ -57,10 +65,24 @@ class BoardHealth
     /**
      * @return Collection<int, Task>
      */
-    public static function doneWithoutEvidence(): Collection
+    public static function doneWithoutEvidence(?int $days = null): Collection
     {
+        $days = self::resolveDoneWithoutEvidenceDays($days);
+        $cutoff = HealthThresholds::doneWithoutEvidenceCutoff($days);
+
         return Task::query()
             ->where('status', 'done')
+            ->where(function (Builder $q) use ($cutoff) {
+                $q->where(function (Builder $inner) use ($cutoff) {
+                    $inner->whereNotNull('done_at')->where('done_at', '>=', $cutoff);
+                })->orWhere(function (Builder $inner) use ($cutoff) {
+                    $inner->whereNull('done_at')->where('updated_at', '>=', $cutoff);
+                });
+            })
+            ->where(function (Builder $q) {
+                $q->whereHas('updates', fn (Builder $u) => $u->where('actor_type', Session::class))
+                    ->orWhereHas('comments', fn (Builder $c) => $c->where('author_type', Session::class));
+            })
             ->with(['comments', 'updates'])
             ->get()
             ->filter(fn (Task $task) => ! EvidenceRule::forDone($task)['ok'])

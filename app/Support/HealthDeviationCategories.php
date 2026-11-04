@@ -31,12 +31,12 @@ class HealthDeviationCategories
     /**
      * @return array<string, Collection<int, Task>>
      */
-    public static function tasksByCategory(): array
+    public static function tasksByCategory(?int $doneWithoutEvidenceDays = null): array
     {
         return [
             self::IN_PROGRESS_STALE => BoardHealth::inProgressStaleQuery()->orderBy('code')->get(),
             self::REVIEW_STALE => BoardHealth::reviewStaleQuery()->orderBy('code')->get(),
-            self::DONE_WITHOUT_EVIDENCE => BoardHealth::doneWithoutEvidence()->sortBy('code')->values(),
+            self::DONE_WITHOUT_EVIDENCE => BoardHealth::doneWithoutEvidence($doneWithoutEvidenceDays)->sortBy('code')->values(),
             self::TODO_COMMIT_HINT => BoardHealth::todoCommitHintTasks()->sortBy('code')->values(),
         ];
     }

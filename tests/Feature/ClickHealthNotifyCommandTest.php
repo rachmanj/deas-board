@@ -70,6 +70,15 @@ class ClickHealthNotifyCommandTest extends TestCase
             'status' => 'done',
             'priority' => 'normal',
             'assignee_session_id' => $session->id,
+            'done_at' => now(),
+        ]);
+
+        TaskUpdate::create([
+            'task_id' => $doneNoProof->id,
+            'from_status' => 'in_progress',
+            'to_status' => 'done',
+            'actor_type' => Session::class,
+            'actor_id' => $session->id,
         ]);
 
         $todoCommit = Task::create([
@@ -137,6 +146,76 @@ class ClickHealthNotifyCommandTest extends TestCase
 
         Http::assertNothingSent();
         $this->assertSame(0, DeviationNotification::query()->count());
+    }
+
+    public function test_dry_run_excludes_old_import_done_without_session_trace(): void
+    {
+        Http::fake();
+        $this->setTelegramEnv();
+        Carbon::setTestNow('2026-11-04 12:00:00');
+
+        Task::create([
+            'code' => 'CLK-OLD',
+            'title' => 'Impor email lama',
+            'status' => 'done',
+            'priority' => 'normal',
+            'source' => 'email',
+            'done_at' => now()->subDays(20),
+        ]);
+
+        $session = Session::create(['label' => 'H', 'topic_id' => '801', 'is_active' => true]);
+        $recent = Task::create([
+            'code' => 'CLK-NEW',
+            'title' => 'Done baru tanpa bukti',
+            'status' => 'done',
+            'priority' => 'normal',
+            'assignee_session_id' => $session->id,
+            'done_at' => now()->subDays(2),
+        ]);
+        TaskUpdate::create([
+            'task_id' => $recent->id,
+            'from_status' => 'review',
+            'to_status' => 'done',
+            'actor_type' => Session::class,
+            'actor_id' => $session->id,
+        ]);
+
+        $this->artisan('click:health-notify --dry-run')
+            ->expectsOutputToContain('CLK-NEW')
+            ->doesntExpectOutputToContain('CLK-OLD')
+            ->assertExitCode(0);
+    }
+
+    public function test_days_option_widens_done_without_evidence_window(): void
+    {
+        Http::fake();
+        $this->setTelegramEnv();
+        Carbon::setTestNow('2026-11-04 12:00:00');
+
+        $session = Session::create(['label' => 'H', 'topic_id' => '801', 'is_active' => true]);
+        $tenDaysAgo = Task::create([
+            'code' => 'CLK-10D',
+            'title' => 'Done 10 hari lalu',
+            'status' => 'done',
+            'priority' => 'normal',
+            'assignee_session_id' => $session->id,
+            'done_at' => now()->subDays(10),
+        ]);
+        TaskUpdate::create([
+            'task_id' => $tenDaysAgo->id,
+            'from_status' => 'in_progress',
+            'to_status' => 'done',
+            'actor_type' => Session::class,
+            'actor_id' => $session->id,
+        ]);
+
+        $this->artisan('click:health-notify --dry-run')
+            ->doesntExpectOutputToContain('CLK-10D')
+            ->assertExitCode(0);
+
+        $this->artisan('click:health-notify --dry-run --days=30')
+            ->expectsOutputToContain('CLK-10D')
+            ->assertExitCode(0);
     }
 
     public function test_sends_one_message_per_category_and_records_notifications(): void

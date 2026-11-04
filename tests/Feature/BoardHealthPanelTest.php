@@ -50,6 +50,15 @@ class BoardHealthPanelTest extends TestCase
             'status' => 'done',
             'priority' => 'normal',
             'assignee_session_id' => $session->id,
+            'done_at' => now(),
+        ]);
+
+        TaskUpdate::create([
+            'task_id' => $doneNoProof->id,
+            'from_status' => 'in_progress',
+            'to_status' => 'done',
+            'actor_type' => Session::class,
+            'actor_id' => $session->id,
         ]);
 
         $todoCommit = Task::create([
@@ -122,5 +131,107 @@ class BoardHealthPanelTest extends TestCase
             ->assertSee('Todo indikasi commit')
             ->assertSee(route('health').'#todo-commit-hint', false);
         $this->assertMatchesRegularExpression('/Todo indikasi commit[\s\S]*?>\s*1\s*</', $dirtyBoard->getContent());
+    }
+
+    public function test_done_without_evidence_respects_days_and_session_trace(): void
+    {
+        Carbon::setTestNow('2026-11-04 12:00:00');
+        $session = Session::create(['label' => 'H', 'topic_id' => '801', 'is_active' => true]);
+
+        $oldDone = Task::create([
+            'code' => 'CLK-OLD-D',
+            'title' => 'Done lama',
+            'status' => 'done',
+            'priority' => 'normal',
+            'assignee_session_id' => $session->id,
+            'done_at' => now()->subDays(10),
+        ]);
+        TaskUpdate::create([
+            'task_id' => $oldDone->id,
+            'from_status' => 'in_progress',
+            'to_status' => 'done',
+            'actor_type' => Session::class,
+            'actor_id' => $session->id,
+        ]);
+
+        $recentDone = Task::create([
+            'code' => 'CLK-REC-D',
+            'title' => 'Done baru',
+            'status' => 'done',
+            'priority' => 'normal',
+            'assignee_session_id' => $session->id,
+            'done_at' => now()->subDays(3),
+        ]);
+        TaskUpdate::create([
+            'task_id' => $recentDone->id,
+            'from_status' => 'review',
+            'to_status' => 'done',
+            'actor_type' => Session::class,
+            'actor_id' => $session->id,
+        ]);
+
+        Task::create([
+            'code' => 'CLK-IMP',
+            'title' => 'Impor tanpa sesi',
+            'status' => 'done',
+            'priority' => 'normal',
+            'source' => 'email',
+            'done_at' => now()->subDays(2),
+        ]);
+
+        $withinSeven = \App\Support\BoardHealth::doneWithoutEvidence(7);
+        $this->assertSame(1, $withinSeven->count());
+        $this->assertTrue($withinSeven->contains(fn (Task $t) => $t->code === 'CLK-REC-D'));
+        $this->assertFalse($withinSeven->contains(fn (Task $t) => $t->code === 'CLK-OLD-D'));
+        $this->assertFalse($withinSeven->contains(fn (Task $t) => $t->code === 'CLK-IMP'));
+        $this->assertSame(2, \App\Support\BoardHealth::doneWithoutEvidence(30)->count());
+    }
+
+    public function test_health_page_days_query_changes_done_section_row_count(): void
+    {
+        Carbon::setTestNow('2026-11-04 12:00:00');
+        $session = Session::create(['label' => 'H', 'topic_id' => '801', 'is_active' => true]);
+
+        foreach (['CLK-7D' => 6, 'CLK-12D' => 12] as $code => $ageDays) {
+            $task = Task::create([
+                'code' => $code,
+                'title' => 'Done '.$ageDays.' hari',
+                'status' => 'done',
+                'priority' => 'normal',
+                'assignee_session_id' => $session->id,
+                'done_at' => now()->subDays($ageDays),
+            ]);
+            TaskUpdate::create([
+                'task_id' => $task->id,
+                'from_status' => 'in_progress',
+                'to_status' => 'done',
+                'actor_type' => Session::class,
+                'actor_id' => $session->id,
+            ]);
+        }
+
+        $user = $this->user();
+
+        $this->actingAs($user)->get('/health')
+            ->assertOk()
+            ->assertSee('CLK-7D')
+            ->assertDontSee('CLK-12D');
+
+        $html14 = $this->actingAs($user)->get('/health?days=14')->assertOk()->getContent();
+        $this->assertMatchesRegularExpression(
+            '/id="done-without-evidence"[\s\S]*?>\s*2\s*task\s*</',
+            $html14
+        );
+        $this->assertStringContainsString('CLK-7D', $html14);
+        $this->assertStringContainsString('CLK-12D', $html14);
+    }
+
+    public function test_health_page_shows_done_without_evidence_subtitle(): void
+    {
+        Carbon::setTestNow('2026-11-04 12:00:00');
+
+        $this->actingAs($this->user())->get('/health')
+            ->assertOk()
+            ->assertSee('hanya 7 hari terakhir, task hasil impor tanpa aktivitas sesi dikecualikan', false);
     }
 }

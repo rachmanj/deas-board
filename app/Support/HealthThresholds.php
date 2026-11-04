@@ -14,6 +14,13 @@ class HealthThresholds
 
     public const REVIEW_STALE_HOURS = 24;
 
+    public const DONE_WITHOUT_EVIDENCE_DAYS = 7;
+
+    public static function doneWithoutEvidenceCutoff(int $days = self::DONE_WITHOUT_EVIDENCE_DAYS): \Illuminate\Support\Carbon
+    {
+        return now()->subDays($days);
+    }
+
     public static function sessionStaleCutoff(): \Illuminate\Support\Carbon
     {
         return now()->subHours(self::SESSION_IDLE_MAX_HOURS);

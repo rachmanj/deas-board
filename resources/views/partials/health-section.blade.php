@@ -4,6 +4,9 @@
 <section id="{{ $id }}" class="rounded-xl border border-zinc-800 bg-zinc-900">
     <header class="border-b border-zinc-800 px-4 py-3">
         <h2 class="text-sm font-semibold text-zinc-100">{{ $title }}</h2>
+        @if(! empty($subtitle))
+            <p class="mt-0.5 text-xs text-zinc-500">{{ $subtitle }}</p>
+        @endif
         <p class="mt-0.5 text-xs text-zinc-400">{{ $tasks->count() }} task</p>
     </header>
     @if($tasks->isEmpty())
