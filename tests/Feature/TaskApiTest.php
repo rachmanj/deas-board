@@ -109,7 +109,10 @@ class TaskApiTest extends TestCase
         ]);
 
         $this->asSession($actor)->patchJson("/api/tasks/{$task->id}", ['status' => 'in_progress'])->assertOk();
-        $this->asSession($actor)->patchJson("/api/tasks/{$task->id}", ['status' => 'review'])->assertOk();
+        $this->asSession($actor)->patchJson("/api/tasks/{$task->id}", [
+            'status' => 'review',
+            'evidence' => 'Siap diverifikasi',
+        ])->assertOk();
 
         $this->assertSame(2, Notification::query()->where('type', 'task.status_changed')->count());
     }

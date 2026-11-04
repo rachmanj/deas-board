@@ -7,6 +7,7 @@ use App\Models\EmailTaskLink;
 use App\Models\Session;
 use App\Models\Task;
 use App\Support\ActivityLogger;
+use App\Support\EvidenceRule;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -153,6 +154,7 @@ class ClickImportAssignmentsCommand extends Command
             }
 
             DB::transaction(function () use ($item, $email, $session, $hasSessionTopic, $resolvedStatus, &$created, &$createdWithoutAssignee) {
+                EvidenceRule::withoutEnforcement(function () use ($item, $email, $session, $hasSessionTopic, $resolvedStatus, &$created, &$createdWithoutAssignee) {
                 $placeholder = 'tmp-'.uniqid();
 
                 $task = Task::create([
@@ -194,6 +196,7 @@ class ClickImportAssignmentsCommand extends Command
                 } else {
                     $createdWithoutAssignee++;
                 }
+                });
             });
 
             $planRows[] = [

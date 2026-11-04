@@ -8,6 +8,7 @@ use App\Models\TaskUpdate;
 use App\Support\ActivityLogger;
 use App\Support\Actor;
 use App\Support\ApiResponse;
+use App\Support\EvidenceRule;
 use App\Support\TaskRules;
 use Illuminate\Http\Request;
 
@@ -24,6 +25,16 @@ class TaskUpdateController extends Controller
         $actor = Actor::from($request);
         $fromStatus = $task->status;
         $toStatus = $validated['status'];
+        $requestEvidence = $validated['evidence'] ?? null;
+
+        if ($toStatus !== $fromStatus) {
+            if ($toStatus === 'done' && ! EvidenceRule::allowsDoneTransition($task, $requestEvidence)) {
+                EvidenceRule::rejectDone($task, $actor, $request);
+            }
+            if ($toStatus === 'review' && ! EvidenceRule::allowsReviewTransition($requestEvidence)) {
+                EvidenceRule::rejectReview($task, $actor, $request);
+            }
+        }
 
         $update = TaskUpdate::create([
             'task_id' => $task->id,

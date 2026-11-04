@@ -6,9 +6,10 @@ use App\Http\Controllers\Api\TaskController as ApiTaskController;
 use App\Http\Controllers\Controller;
 use App\Models\Task;
 use App\Models\TaskUpdate;
+use App\Support\Actor;
+use App\Support\EvidenceRule;
 use App\Support\TaskRules;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class TaskStatusController extends Controller
 {
@@ -16,12 +17,22 @@ class TaskStatusController extends Controller
     {
         $validated = $request->validate([
             'status' => ['required', TaskRules::statusRule()],
+            'evidence' => ['sometimes', 'nullable', 'string'],
         ]);
 
         $oldStatus = $task->status;
         $newStatus = $validated['status'];
+        $requestEvidence = $validated['evidence'] ?? null;
+        $actor = Actor::from($request);
 
         if ($newStatus !== $oldStatus) {
+            if ($newStatus === 'done' && ! EvidenceRule::allowsDoneTransition($task, $requestEvidence)) {
+                EvidenceRule::rejectDone($task, $actor, $request);
+            }
+            if ($newStatus === 'review' && ! EvidenceRule::allowsReviewTransition($requestEvidence)) {
+                EvidenceRule::rejectReview($task, $actor, $request);
+            }
+
             $task->status = $newStatus;
             if ($newStatus === 'done' && ! $task->done_at) {
                 $task->done_at = now();
@@ -32,8 +43,9 @@ class TaskStatusController extends Controller
                 'task_id' => $task->id,
                 'from_status' => $oldStatus,
                 'to_status' => $newStatus,
-                'actor_type' => Auth::user()::class,
-                'actor_id' => Auth::id(),
+                'evidence' => $requestEvidence,
+                'actor_type' => Actor::morphType($actor),
+                'actor_id' => $actor->getKey(),
             ]);
 
             ApiTaskController::notifyAssigneeStatusChanged($task);

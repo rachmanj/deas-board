@@ -14,6 +14,7 @@ use App\Models\TaskUpdate;
 use App\Support\ActivityLogger;
 use App\Support\Actor;
 use App\Support\CommentFormNonce;
+use App\Support\EvidenceRule;
 use App\Support\TaskRules;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -130,9 +131,11 @@ class TaskController extends Controller
             'external_ref' => ['nullable', 'string', 'max:255'],
             'label_ids' => ['sometimes', 'array'],
             'label_ids.*' => ['integer', 'exists:labels,id'],
+            'evidence' => ['sometimes', 'nullable', 'string'],
         ]);
 
         $actor = Actor::from($request);
+        $requestEvidence = array_key_exists('evidence', $validated) ? $validated['evidence'] : null;
 
         if ($task === null) {
             return DB::transaction(function () use ($validated, $actor, $request) {
@@ -168,6 +171,16 @@ class TaskController extends Controller
 
         $oldStatus = $task->status;
         $changes = [];
+
+        if (array_key_exists('status', $validated) && $validated['status'] !== $oldStatus) {
+            $newStatus = $validated['status'];
+            if ($newStatus === 'done' && ! EvidenceRule::allowsDoneTransition($task, $requestEvidence)) {
+                EvidenceRule::rejectDone($task, $actor, $request);
+            }
+            if ($newStatus === 'review' && ! EvidenceRule::allowsReviewTransition($requestEvidence)) {
+                EvidenceRule::rejectReview($task, $actor, $request);
+            }
+        }
 
         if (array_key_exists('title', $validated)) {
             $changes['title'] = ['old' => $task->title, 'new' => $validated['title']];
@@ -213,6 +226,7 @@ class TaskController extends Controller
                 'task_id' => $task->id,
                 'from_status' => $oldStatus,
                 'to_status' => $validated['status'],
+                'evidence' => $requestEvidence,
                 'actor_type' => Actor::morphType($actor),
                 'actor_id' => $actor->getKey(),
             ]);
