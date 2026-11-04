@@ -20,6 +20,8 @@
             </div>
         @endif
 
+        @include('partials.board-health-summary')
+
         @include('partials.task-filters', [
             'filterAction' => route('board'),
             'filters' => $filters,

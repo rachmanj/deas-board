@@ -9,7 +9,7 @@ use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TaskUpdateController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth:sanctum', 'throttle:api-token'])->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:api-token', 'touch.session'])->group(function () {
     Route::get('/me', [MeController::class, 'show']);
 
     Route::get('/sessions', [SessionController::class, 'index']);

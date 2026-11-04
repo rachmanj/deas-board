@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@php
+    use App\Support\SessionPresence;
+@endphp
+
 @section('content')
     @php
         $editingSessionId = (int) old('_editing_session', 0);
@@ -75,8 +79,12 @@
                                     <th class="px-3 py-2 font-medium">Host</th>
                                     <th class="px-3 py-2 font-medium">Catatan</th>
                                     <th class="px-3 py-2 font-medium">Aktif</th>
+                                    <th class="px-3 py-2 font-medium">Kehadiran</th>
+                                    <th class="px-3 py-2 font-medium">Terakhir dilihat</th>
                                     <th class="px-3 py-2 font-medium">Token aktif</th>
-                                    <th class="px-3 py-2 font-medium">Task terbuka</th>
+                                    <th class="px-3 py-2 font-medium">Task per status</th>
+                                    <th class="px-3 py-2 font-medium">In progress</th>
+                                    <th class="px-3 py-2 font-medium">Commit</th>
                                     <th class="px-3 py-2 font-medium">Aksi</th>
                                 </tr>
                             </thead>
@@ -85,8 +93,10 @@
                                     @php
                                         $editFormId = 'session-edit-'.$session->id;
                                         $isRowEditing = $editingSessionId === $session->id;
+                                        $menggantung = SessionPresence::isMenggantung($session);
+                                        $topInProgress = $session->assignedTasks->first();
                                     @endphp
-                                    <tr class="align-top">
+                                    <tr class="align-top {{ $menggantung ? 'text-red-400' : '' }}">
                                         <td class="px-3 py-3 text-zinc-100">
                                             <span x-show="!isEditing({{ $session->id }})">{{ $session->label }}</span>
                                             <div x-show="isEditing({{ $session->id }})" x-cloak>
@@ -138,8 +148,29 @@
                                                 <span class="text-zinc-400">Tidak</span>
                                             @endif
                                         </td>
+                                        <td class="px-3 py-3 text-sm {{ $menggantung ? 'text-red-400' : 'text-zinc-300' }}">
+                                            <span>{{ SessionPresence::activityLabel($session->last_seen_at) }}</span>
+                                            @if($menggantung)
+                                                <span class="ml-1 font-medium">· Menggantung</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-3 py-3 text-xs {{ $menggantung ? 'text-red-400' : 'text-zinc-400' }}">
+                                            {{ SessionPresence::formatLastSeenWib($session->last_seen_at) }}
+                                        </td>
                                         <td class="px-3 py-3 text-zinc-300">{{ $session->active_tokens_count }}</td>
-                                        <td class="px-3 py-3 text-zinc-300">{{ $session->open_tasks_count }}</td>
+                                        <td class="px-3 py-3 font-mono text-xs {{ $menggantung ? 'text-red-400' : 'text-zinc-300' }}">
+                                            todo {{ $session->tasks_todo_count }}
+                                            · prog {{ $session->tasks_in_progress_count }}
+                                            · blk {{ $session->tasks_blocked_count }}
+                                            · rev {{ $session->tasks_review_count }}
+                                            · done {{ $session->tasks_done_count }}
+                                        </td>
+                                        <td class="px-3 py-3 text-xs {{ $menggantung ? 'text-red-400' : 'text-zinc-300' }}">
+                                            {{ $topInProgress?->title ?? '—' }}
+                                        </td>
+                                        <td class="px-3 py-3 font-mono text-xs {{ $menggantung ? 'text-red-400' : 'text-zinc-400' }}">
+                                            {{ $session->last_commit_ref ?? '—' }}
+                                        </td>
                                         <td class="px-3 py-3">
                                             <form id="{{ $editFormId }}" method="POST"
                                                   action="{{ route('sessions.update', $session) }}"

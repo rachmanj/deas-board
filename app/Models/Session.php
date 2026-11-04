@@ -19,6 +19,8 @@ class Session extends Model
         'notes',
         'is_active',
         'last_seen_at',
+        'last_seen_ip',
+        'last_commit_ref',
     ];
 
     protected function casts(): array

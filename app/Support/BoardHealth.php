@@ -1,0 +1,111 @@
+<?php
+
+namespace App\Support;
+
+use App\Models\Task;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+
+class BoardHealth
+{
+    /**
+     * @return array{
+     *     in_progress_stale: int,
+     *     review_stale: int,
+     *     done_without_evidence: int,
+     *     todo_commit_hint: int,
+     * }
+     */
+    public static function counts(): array
+    {
+        return [
+            'in_progress_stale' => self::inProgressStaleQuery()->count(),
+            'review_stale' => self::reviewStaleQuery()->count(),
+            'done_without_evidence' => self::doneWithoutEvidence()->count(),
+            'todo_commit_hint' => self::todoCommitHintTasks()->count(),
+        ];
+    }
+
+    public static function totalDeviations(array $counts): int
+    {
+        return array_sum($counts);
+    }
+
+    public static function inProgressStaleQuery(): Builder
+    {
+        $cutoff = HealthThresholds::inProgressStaleCutoff();
+
+        return Task::query()
+            ->where('status', 'in_progress')
+            ->whereDoesntHave('updates', fn (Builder $q) => $q->where('created_at', '>=', $cutoff))
+            ->whereDoesntHave('comments', fn (Builder $q) => $q->where('created_at', '>=', $cutoff))
+            ->where('updated_at', '<', $cutoff);
+    }
+
+    public static function reviewStaleQuery(): Builder
+    {
+        $cutoff = HealthThresholds::reviewStaleCutoff();
+
+        return Task::query()
+            ->where('status', 'review')
+            ->whereDoesntHave('updates', fn (Builder $q) => $q->where('created_at', '>=', $cutoff))
+            ->whereDoesntHave('comments', fn (Builder $q) => $q->where('created_at', '>=', $cutoff))
+            ->where('updated_at', '<', $cutoff);
+    }
+
+    /**
+     * @return Collection<int, Task>
+     */
+    public static function doneWithoutEvidence(): Collection
+    {
+        return Task::query()
+            ->where('status', 'done')
+            ->with(['comments', 'updates'])
+            ->get()
+            ->filter(fn (Task $task) => ! EvidenceRule::forDone($task)['ok'])
+            ->values();
+    }
+
+    public static function todoCommitHintTasks(): Collection
+    {
+        return Task::query()
+            ->where('status', 'todo')
+            ->get()
+            ->filter(fn (Task $task) => self::todoLooksLikeCommitWork($task))
+            ->values();
+    }
+
+    public static function todoLooksLikeCommitWork(Task $task): bool
+    {
+        if ($task->external_ref !== null && preg_match('/\b[0-9a-f]{7,40}\b/i', (string) $task->external_ref)) {
+            return true;
+        }
+
+        return preg_match('/commit/ui', (string) $task->title) === 1;
+    }
+
+    public static function formatAge(Carbon $since): string
+    {
+        $hours = (int) $since->diffInHours(now());
+
+        if ($hours < 48) {
+            return $hours.' jam';
+        }
+
+        return (int) $since->diffInDays(now()).' hari';
+    }
+
+    public static function taskActivityAnchor(Task $task): Carbon
+    {
+        $latestUpdate = $task->updates()->max('created_at');
+        $latestComment = $task->comments()->max('created_at');
+        $candidates = array_filter([$latestUpdate, $latestComment, $task->updated_at?->toDateTimeString()]);
+
+        if ($candidates === []) {
+            return $task->created_at ?? now();
+        }
+
+        return Carbon::parse(max($candidates));
+    }
+}

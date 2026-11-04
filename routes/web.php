@@ -9,6 +9,7 @@ use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\SessionController;
 use App\Http\Controllers\Web\TaskController;
 use App\Http\Controllers\Web\TaskListController;
+use App\Http\Controllers\Web\HealthController;
 use App\Http\Controllers\Web\TaskStatusController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
     Route::patch('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::get('/', [BoardController::class, 'index'])->name('board');
+    Route::get('/health', [HealthController::class, 'index'])->name('health');
     Route::get('/board/version', [BoardController::class, 'version'])->name('board.version');
     Route::get('/board/fragment', [BoardController::class, 'fragment'])->name('board.fragment');
     Route::get('/tasks', [TaskListController::class, 'index'])->name('tasks.index');

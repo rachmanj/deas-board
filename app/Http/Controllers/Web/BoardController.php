@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\Concerns\PreparesTaskViews;
 use App\Models\Task;
+use App\Support\BoardHealth;
 use App\Support\BoardVersion;
 use App\Support\TaskFilterQuery;
 use App\Support\TaskRules;
@@ -20,6 +21,7 @@ class BoardController extends Controller
         $board = $this->boardPayload($request);
         $totalTasks = Task::query()->count();
         $hasActiveFilters = TaskFilterQuery::hasActiveFilters($request);
+        $healthCounts = BoardHealth::counts();
 
         return view('board.index', [
             ...$board,
@@ -28,6 +30,8 @@ class BoardController extends Controller
             'totalTasks' => $totalTasks,
             'hasActiveFilters' => $hasActiveFilters,
             'filters' => $this->filterOptions(),
+            'healthCounts' => $healthCounts,
+            'healthTotal' => BoardHealth::totalDeviations($healthCounts),
             'pageTitle' => 'Board',
         ]);
     }

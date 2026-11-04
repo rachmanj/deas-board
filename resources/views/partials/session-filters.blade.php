@@ -15,6 +15,14 @@
         </select>
     </div>
     <div>
+        <label for="session-filter-status-kerja" class="mb-1 block text-xs text-zinc-400">Status kerja</label>
+        <select id="session-filter-status-kerja" name="status_kerja"
+                class="min-h-11 rounded-lg border border-zinc-800 bg-zinc-950 px-3 text-sm text-zinc-100 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40">
+            <option value="">All</option>
+            <option value="menggantung" @selected(request('status_kerja') === 'menggantung')>Menggantung</option>
+        </select>
+    </div>
+    <div>
         <label for="session-filter-sort" class="mb-1 block text-xs text-zinc-400">Sort by</label>
         <select id="session-filter-sort" name="sort"
                 class="min-h-11 rounded-lg border border-zinc-800 bg-zinc-950 px-3 text-sm text-zinc-100 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40">

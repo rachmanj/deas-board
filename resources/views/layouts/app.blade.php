@@ -24,6 +24,10 @@
                    class="min-h-11 sm:min-h-10 rounded-lg px-3 py-2 text-sm {{ request()->routeIs('sessions*') ? 'bg-teal-500/15 text-teal-500' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100' }} focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
                     Sessions
                 </a>
+                <a href="{{ route('health') }}"
+                   class="min-h-11 sm:min-h-10 rounded-lg px-3 py-2 text-sm {{ request()->routeIs('health') ? 'bg-teal-500/15 text-teal-500' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100' }} focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-900">
+                    Kesehatan
+                </a>
             </nav>
         </aside>
 

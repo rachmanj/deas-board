@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class SessionFilterQuery
 {
-    private const FILTER_KEYS = ['q', 'status', 'sort'];
+    private const FILTER_KEYS = ['q', 'status', 'sort', 'status_kerja'];
 
     public static function hasActiveFilters(Request $request): bool
     {
@@ -55,6 +55,7 @@ class SessionFilterQuery
         $request->validate([
             'q' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', 'in:aktif,nonaktif'],
+            'status_kerja' => ['nullable', 'in:menggantung'],
             'sort' => ['nullable', 'in:label,topic,tasks'],
         ]);
 
@@ -62,8 +63,17 @@ class SessionFilterQuery
             ->withCount([
                 'tokens as active_tokens_count',
                 'assignedTasks as open_tasks_count' => fn ($q) => $q->where('status', '!=', 'done'),
+                'assignedTasks as in_progress_tasks_count' => fn ($q) => $q->where('status', 'in_progress'),
+                'assignedTasks as tasks_todo_count' => fn ($q) => $q->where('status', 'todo'),
+                'assignedTasks as tasks_in_progress_count' => fn ($q) => $q->where('status', 'in_progress'),
+                'assignedTasks as tasks_blocked_count' => fn ($q) => $q->where('status', 'blocked'),
+                'assignedTasks as tasks_review_count' => fn ($q) => $q->where('status', 'review'),
+                'assignedTasks as tasks_done_count' => fn ($q) => $q->where('status', 'done'),
             ])
-            ->with(['tokens' => fn ($q) => $q->orderByDesc('id')]);
+            ->with([
+                'tokens' => fn ($q) => $q->orderByDesc('id'),
+                'assignedTasks' => fn ($q) => $q->where('status', 'in_progress')->orderByDesc('updated_at')->limit(1),
+            ]);
 
         if ($request->filled('q')) {
             $term = '%'.$request->string('q').'%';
@@ -77,6 +87,15 @@ class SessionFilterQuery
 
         if ($request->filled('status')) {
             $query->where('is_active', $request->string('status')->toString() === 'aktif');
+        }
+
+        if ($request->string('status_kerja')->toString() === 'menggantung') {
+            $staleCutoff = HealthThresholds::sessionStaleCutoff();
+            $query->whereHas('assignedTasks', fn (Builder $q) => $q->where('status', 'in_progress'))
+                ->where(function (Builder $q) use ($staleCutoff) {
+                    $q->whereNull('last_seen_at')
+                        ->orWhere('last_seen_at', '<', $staleCutoff);
+                });
         }
 
         $sort = $request->string('sort', 'label')->toString();
