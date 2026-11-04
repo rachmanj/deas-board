@@ -52,6 +52,10 @@ class ClickHealthNotifyCommand extends Command
 
         if ($token === '' || $chatId === '') {
             Log::info('notifikasi dilewati (env belum diisi)');
+            $skipped = count($plans);
+            if ($skipped > 0) {
+                $this->emitNotifySummary(0, 0, $skipped);
+            }
 
             return self::SUCCESS;
         }
@@ -60,8 +64,14 @@ class ClickHealthNotifyCommand extends Command
             return self::SUCCESS;
         }
 
-        $notifier->sendAndRecord($plans, now(), $force);
+        $summary = $notifier->sendAndRecord($plans, now(), $force);
+        $this->emitNotifySummary($summary['sent'], $summary['failed'], $summary['skipped']);
 
         return self::SUCCESS;
+    }
+
+    private function emitNotifySummary(int $sent, int $failed, int $skipped): void
+    {
+        $this->line("terkirim: {$sent} kategori · gagal: {$failed} · dilewati: {$skipped}");
     }
 }

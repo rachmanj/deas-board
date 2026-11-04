@@ -7,14 +7,28 @@ use App\Models\Task;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Throwable;
 
 class HealthDeviationNotifier
 {
+    private ?int $lastTelegramHttpStatus = null;
+
+    private ?string $lastTelegramError = null;
+
     public function __construct(
         private readonly ?string $botToken,
         private readonly ?string $chatId,
     ) {}
+
+    public function isConfigured(): bool
+    {
+        return $this->botToken !== null
+            && $this->botToken !== ''
+            && $this->chatId !== null
+            && $this->chatId !== '';
+    }
 
     /**
      * @return list<array{category: string, message: string, tasks: Collection<int, Task>}>
@@ -50,26 +64,73 @@ class HealthDeviationNotifier
     /**
      * @param  list<array{category: string, message: string, tasks: Collection<int, Task>}>  $plans
      */
-    public function sendAndRecord(array $plans, Carbon $onDate, bool $force): void
+    /**
+     * @return array{sent: int, failed: int, skipped: int}
+     */
+    public function sendAndRecord(array $plans, Carbon $onDate, bool $force): array
     {
+        $sent = 0;
+        $failed = 0;
+        $skipped = 0;
+
         foreach ($plans as $plan) {
-            $this->sendTelegram($plan['message']);
-            if (! $force) {
-                $this->recordBatch($plan['category'], $plan['tasks'], $onDate);
+            if (! $this->isConfigured()) {
+                $skipped++;
+
+                continue;
             }
+
+            if ($this->sendTelegram($plan['message'])) {
+                $sent++;
+                if (! $force) {
+                    $this->recordBatch($plan['category'], $plan['tasks'], $onDate);
+                }
+
+                continue;
+            }
+
+            $failed++;
+            Log::warning('notifikasi Telegram gagal', [
+                'category' => $plan['category'],
+                'count' => $plan['tasks']->count(),
+                'status' => $this->lastTelegramHttpStatus,
+                'error' => $this->lastTelegramError,
+            ]);
         }
+
+        return compact('sent', 'failed', 'skipped');
     }
 
-    public function sendTelegram(string $text): void
+    public function sendTelegram(string $text): bool
     {
-        if ($this->botToken === null || $this->botToken === '' || $this->chatId === null || $this->chatId === '') {
-            return;
+        $this->lastTelegramHttpStatus = null;
+        $this->lastTelegramError = null;
+
+        if (! $this->isConfigured()) {
+            return false;
         }
 
-        Http::post("https://api.telegram.org/bot{$this->botToken}/sendMessage", [
-            'chat_id' => $this->chatId,
-            'text' => $text,
-        ]);
+        try {
+            $response = Http::post("https://api.telegram.org/bot{$this->botToken}/sendMessage", [
+                'chat_id' => $this->chatId,
+                'text' => $text,
+            ]);
+
+            if ($response->successful() && $response->json('ok') === true) {
+                return true;
+            }
+
+            $this->lastTelegramHttpStatus = $response->status();
+            $this->lastTelegramError = is_string($response->json('description'))
+                ? $response->json('description')
+                : ($response->body() !== '' ? 'response not ok' : 'empty response');
+
+            return false;
+        } catch (Throwable $e) {
+            $this->lastTelegramError = $e->getMessage();
+
+            return false;
+        }
     }
 
     /**
