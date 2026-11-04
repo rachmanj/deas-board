@@ -16,6 +16,7 @@ use App\Support\Actor;
 use App\Support\CommentFormNonce;
 use App\Support\EvidenceRule;
 use App\Support\TaskRules;
+use App\Support\TextNormalizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -132,6 +133,13 @@ class TaskController extends Controller
             'label_ids' => ['sometimes', 'array'],
             'label_ids.*' => ['integer', 'exists:labels,id'],
             'evidence' => ['sometimes', 'nullable', 'string'],
+        ]);
+
+        $validated = TextNormalizer::cleanFields($validated, [
+            'title',
+            'description_md',
+            'external_ref',
+            'evidence',
         ]);
 
         $actor = Actor::from($request);

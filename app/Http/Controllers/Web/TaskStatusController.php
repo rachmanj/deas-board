@@ -9,6 +9,7 @@ use App\Models\TaskUpdate;
 use App\Support\Actor;
 use App\Support\EvidenceRule;
 use App\Support\TaskRules;
+use App\Support\TextNormalizer;
 use Illuminate\Http\Request;
 
 class TaskStatusController extends Controller
@@ -19,6 +20,8 @@ class TaskStatusController extends Controller
             'status' => ['required', TaskRules::statusRule()],
             'evidence' => ['sometimes', 'nullable', 'string'],
         ]);
+
+        $validated = TextNormalizer::cleanFields($validated, ['evidence']);
 
         $oldStatus = $task->status;
         $newStatus = $validated['status'];

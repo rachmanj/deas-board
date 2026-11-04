@@ -35,15 +35,15 @@
             <table class="w-full min-w-[48rem] text-left text-sm">
                 <thead class="border-b border-zinc-800 text-xs text-zinc-400">
                     <tr>
-                        <th class="px-3 py-2 font-medium">Kode</th>
-                        <th class="px-3 py-2 font-medium">Judul</th>
+                        <th class="px-3 py-2 font-medium">Code</th>
+                        <th class="px-3 py-2 font-medium">Title</th>
                         <th class="px-3 py-2 font-medium">Status</th>
-                        <th class="px-3 py-2 font-medium">Prioritas</th>
-                        <th class="px-3 py-2 font-medium">Sesi</th>
-                        <th class="px-3 py-2 font-medium">Proyek</th>
-                        <th class="px-3 py-2 font-medium">Tenggat</th>
-                        <th class="px-3 py-2 font-medium">Umur (hari)</th>
-                        <th class="px-3 py-2 font-medium">Komentar</th>
+                        <th class="px-3 py-2 font-medium">Priority</th>
+                        <th class="px-3 py-2 font-medium">Assignee</th>
+                        <th class="px-3 py-2 font-medium">Project</th>
+                        <th class="px-3 py-2 font-medium">Due</th>
+                        <th class="px-3 py-2 font-medium">Age</th>
+                        <th class="px-3 py-2 font-medium">Comments</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-800">

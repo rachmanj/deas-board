@@ -202,4 +202,21 @@ class WebBoardTest extends TestCase
             ->assertSee('Task sesi A')
             ->assertDontSee('Task sesi B');
     }
+
+    public function test_board_card_and_filter_use_english_priority_labels(): void
+    {
+        $user = $this->actingUser();
+
+        Task::create(['code' => 'CLK-H', 'title' => 'High card', 'status' => 'todo', 'priority' => 'high']);
+        Task::create(['code' => 'CLK-U', 'title' => 'Urgent card', 'status' => 'todo', 'priority' => 'urgent']);
+
+        $board = $this->actingAs($user)->get('/');
+        $board->assertOk()
+            ->assertSee('>High</dd>', false)
+            ->assertSee('>Urgent</dd>', false)
+            ->assertDontSee('>Tinggi</', false)
+            ->assertDontSee('>Mendesak</', false)
+            ->assertSee('>High</option>', false)
+            ->assertSee('>Urgent</option>', false);
+    }
 }

@@ -10,6 +10,7 @@ use App\Support\Actor;
 use App\Support\ApiResponse;
 use App\Support\EvidenceRule;
 use App\Support\TaskRules;
+use App\Support\TextNormalizer;
 use Illuminate\Http\Request;
 
 class TaskUpdateController extends Controller
@@ -21,6 +22,8 @@ class TaskUpdateController extends Controller
             'note' => ['sometimes', 'nullable', 'string'],
             'evidence' => ['sometimes', 'nullable', 'string'],
         ]);
+
+        $validated = TextNormalizer::cleanFields($validated, ['note', 'evidence']);
 
         $actor = Actor::from($request);
         $fromStatus = $task->status;

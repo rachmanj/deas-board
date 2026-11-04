@@ -6,10 +6,12 @@ use App\Models\ActivityLog;
 use App\Models\Email;
 use App\Models\Session;
 use App\Models\Task;
+use App\Models\TaskComment;
 use App\Models\TaskUpdate;
 use App\Models\User;
 use App\Support\EvidenceRule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\File;
 use Tests\Concerns\ActsAsApiActor;
 use Tests\TestCase;
@@ -33,8 +35,9 @@ class EvidenceRuleTest extends TestCase
             'status' => 'done',
         ]);
 
-        $response->assertStatus(422)
-            ->assertJsonPath('message', EvidenceRule::DONE_MESSAGE);
+        $response->assertStatus(422);
+        $this->assertStringContainsString(EvidenceRule::DONE_MESSAGE, (string) $response->json('message'));
+        $this->assertStringContainsString('7 hari terakhir', (string) $response->json('message'));
 
         $task->refresh();
         $this->assertSame('in_progress', $task->status);
@@ -176,5 +179,56 @@ class EvidenceRuleTest extends TestCase
         $task = Task::query()->where('external_ref', 'ext-import-done')->first();
         $this->assertNotNull($task);
         $this->assertSame('done', $task->status);
+    }
+
+    public function test_old_bukti_comment_before_last_in_progress_does_not_allow_done(): void
+    {
+        Carbon::setTestNow('2026-06-10 12:00:00');
+        $session = Session::create(['label' => 'S', 'topic_id' => '906', 'is_active' => true]);
+        $task = Task::create([
+            'code' => 'CLK-83',
+            'title' => 'Stale bukti',
+            'status' => 'todo',
+            'priority' => 'normal',
+            'created_at' => Carbon::parse('2026-06-01 08:00:00'),
+        ]);
+
+        $stale = TaskComment::create([
+            'task_id' => $task->id,
+            'body_md' => 'Ini bukti lama sebelum mulai kerja',
+            'author_type' => Session::class,
+            'author_id' => $session->id,
+        ]);
+        $stale->created_at = Carbon::parse('2026-06-01 09:00:00');
+        $stale->saveQuietly();
+
+        $inProgressAt = Carbon::parse('2026-06-10 12:00:00');
+        TaskUpdate::create([
+            'task_id' => $task->id,
+            'from_status' => 'todo',
+            'to_status' => 'in_progress',
+            'created_at' => $inProgressAt,
+        ]);
+        $task->update(['status' => 'in_progress']);
+
+        $reject = $this->asSession($session)->patchJson("/api/tasks/{$task->id}", [
+            'status' => 'done',
+        ]);
+        $reject->assertStatus(422);
+        $this->assertStringContainsString('in_progress terakhir (2026-06-10 12:00)', (string) $reject->json('message'));
+
+        Carbon::setTestNow('2026-06-10 13:00:00');
+        $this->asSession($session)->postJson("/api/tasks/{$task->id}/comments", [
+            'body_md' => 'Selesai commit cafebabe1234567',
+        ])->assertCreated();
+
+        $this->asSession($session)->patchJson("/api/tasks/{$task->id}", [
+            'status' => 'done',
+        ])->assertOk();
+
+        $task->refresh();
+        $this->assertSame('done', $task->status);
+
+        Carbon::setTestNow();
     }
 }

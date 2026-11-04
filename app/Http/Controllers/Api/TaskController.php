@@ -12,6 +12,7 @@ use App\Support\Actor;
 use App\Support\ApiResponse;
 use App\Support\EvidenceRule;
 use App\Support\TaskRules;
+use App\Support\TextNormalizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -156,9 +157,13 @@ class TaskController extends Controller
             'start_date' => ['sometimes', 'nullable', 'date'],
             'label_ids' => ['sometimes', 'array'],
             'label_ids.*' => ['integer', 'exists:labels,id'],
+            'external_ref' => ['sometimes', 'nullable', 'string', 'max:255'],
         ]);
 
+        $validated = TextNormalizer::cleanFields($validated, ['title', 'description_md', 'external_ref']);
+
         $actor = Actor::from($request);
+
         $assigneeSessionId = $this->resolveAssigneeSessionId($validated);
 
         $task = DB::transaction(function () use ($validated, $actor, $assigneeSessionId, $request) {
@@ -175,6 +180,7 @@ class TaskController extends Controller
                 'project_id' => $validated['project_id'] ?? null,
                 'due_date' => $validated['due_date'] ?? null,
                 'start_date' => $validated['start_date'] ?? null,
+                'external_ref' => $validated['external_ref'] ?? null,
                 'created_by_type' => Actor::morphType($actor),
                 'created_by_id' => $actor->getKey(),
             ]);
@@ -214,7 +220,10 @@ class TaskController extends Controller
             'label_ids' => ['sometimes', 'array'],
             'label_ids.*' => ['integer', 'exists:labels,id'],
             'evidence' => ['sometimes', 'nullable', 'string'],
+            'external_ref' => ['sometimes', 'nullable', 'string', 'max:255'],
         ]);
+
+        $validated = TextNormalizer::cleanFields($validated, ['title', 'description_md', 'external_ref', 'evidence']);
 
         $actor = Actor::from($request);
         $oldStatus = $task->status;
@@ -264,6 +273,9 @@ class TaskController extends Controller
         }
         if (array_key_exists('start_date', $validated)) {
             $task->start_date = $validated['start_date'];
+        }
+        if (array_key_exists('external_ref', $validated)) {
+            $task->external_ref = $validated['external_ref'];
         }
 
         $task->save();

@@ -45,4 +45,31 @@ class WebTaskListTest extends TestCase
             ->assertSee('Done task')
             ->assertDontSee('Open task');
     }
+
+    public function test_task_list_table_headers_are_english(): void
+    {
+        $user = User::factory()->create();
+        Task::create(['code' => 'CLK-1', 'title' => 'Row', 'status' => 'todo', 'priority' => 'normal']);
+
+        $response = $this->actingAs($user)->get('/tasks');
+
+        $response->assertOk()
+            ->assertSee('>Code</th>', false)
+            ->assertSee('>Title</th>', false)
+            ->assertSee('>Status</th>', false)
+            ->assertSee('>Priority</th>', false)
+            ->assertSee('>Assignee</th>', false)
+            ->assertSee('>Project</th>', false)
+            ->assertSee('>Due</th>', false)
+            ->assertSee('>Age</th>', false)
+            ->assertSee('>Comments</th>', false)
+            ->assertDontSee('>Kode</th>', false)
+            ->assertDontSee('>Judul</th>', false)
+            ->assertDontSee('>Prioritas</th>', false)
+            ->assertDontSee('>Sesi</th>', false)
+            ->assertDontSee('>Proyek</th>', false)
+            ->assertDontSee('>Tenggat</th>', false)
+            ->assertDontSee('>Umur (hari)</th>', false)
+            ->assertDontSee('>Komentar</th>', false);
+    }
 }

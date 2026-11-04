@@ -13,6 +13,7 @@ use App\Support\ActivityLogger;
 use App\Support\Actor;
 use App\Support\ApiResponse;
 use App\Support\MentionParser;
+use App\Support\TextNormalizer;
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
@@ -25,6 +26,8 @@ class CommentController extends Controller
             'mentions' => ['sometimes', 'array'],
             'mentions.*' => ['string'],
         ]);
+
+        $validated = TextNormalizer::cleanFields($validated, ['body_md']);
 
         $actor = Actor::from($request);
 
@@ -54,6 +57,8 @@ class CommentController extends Controller
             'mentions.*' => ['string'],
         ]);
 
+        $validated = TextNormalizer::cleanFields($validated, ['body_md']);
+
         $actor = Actor::from($request);
 
         $reply = TaskComment::create([
@@ -80,6 +85,8 @@ class CommentController extends Controller
         $validated = $request->validate([
             'body_md' => ['required', 'string'],
         ]);
+
+        $validated = TextNormalizer::cleanFields($validated, ['body_md']);
 
         $actor = Actor::from($request);
         $this->ensureAuthor($actor, $comment);

@@ -31,10 +31,10 @@ trait PreparesTaskViews
     protected function priorityLabels(): array
     {
         return [
-            'low' => 'Rendah',
+            'low' => 'Low',
             'normal' => 'Normal',
-            'high' => 'Tinggi',
-            'urgent' => 'Mendesak',
+            'high' => 'High',
+            'urgent' => 'Urgent',
         ];
     }
 }
